@@ -58,18 +58,19 @@ td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:
     <option value="+x">Kyljellään, oikea reuna kohti piippua</option>
     <option value="-x">Kyljellään, vasen reuna kohti piippua</option></select>
   <label>Äänen viive (ms, vähennetään laukaisuhetkestä)</label><input id="delay" type="number" step="5">
+  <label>Tähtäyspisteen pehmennys (ms, 0 = pois). Vaikuttaa vain näyttöön, ei laukauksen paikkaan.</label><input id="smooth" type="number" min="0" step="10">
 </div></details>
 <div class="card"><table id="tbl"></table></div>
 <script>
 const $=id=>document.getElementById(id),D=Math.PI/180,wrap=d=>((d+540)%360)-180;
 const MV={'-z':[0,0,-1],'+y':[0,1,0],'+x':[1,0,0],'-x':[-1,0,0]};
 const PRE={'300':[100,50],'50':[10.4,8],'10':[0.5,2.5]};
-let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40};
+let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('kk')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}};
 const S={zero:{az:0,el:0},buf:[],shots:[],cur:null,last:0,n:0,t0:performance.now(),hz:0,level:0};
 
-for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1]]){
+for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1]]){
   const e=$(id);e.value=cfg[id==='dist'?'dist':id];
   e.oninput=e.onchange=()=>{
     cfg[id]=num?(parseFloat(e.value)||0):e.value;
@@ -158,12 +159,12 @@ async function start(){
   st.textContent=m+'Tähtää tauluun ja paina "Nollaa tähtäys". Kuivalaukaise.';
 }
 $('start').onclick=start;
-$('zero').onclick=()=>{if(S.cur)S.zero={...S.cur}};
+$('zero').onclick=()=>{if(S.cur){S.zero={...S.cur};S.sm=null}};
 $('test').onclick=()=>{if(!S.cur){$('st').textContent='Käynnistä anturit ensin.';return}S.last=performance.now();fire(performance.now())};
 $('clr').onclick=()=>{S.shots=[];render()};
 
 function draw(){
-  const c=$('cv'),x=c.getContext('2d'),W=c.width,cx=W/2,cs=getComputedStyle(document.documentElement),col=n=>cs.getPropertyValue(n).trim();
+  const c=$('cv'),x=c.getContext('2d'),W=c.width,cx=W/2,col=n=>C[n];
   const r10=cfg.d10/2,R1=r10+9*cfg.step,vr=R1*1.1,k=cx/vr,X=m=>cx+Math.max(-vr,Math.min(vr,m))*k,Y=m=>cx-Math.max(-vr,Math.min(vr,m))*k;
   x.clearRect(0,0,W,W);
   x.fillStyle=col('--line');x.beginPath();x.arc(cx,cx,(r10+6*cfg.step)*k,0,7);x.fill();
@@ -181,15 +182,20 @@ function draw(){
   S.shots.forEach(s=>{x.fillStyle=col('--acc');x.globalAlpha=s===last?1:.6;x.beginPath();x.arc(X(s.x),Y(s.y),10,0,7);x.fill();x.globalAlpha=1;x.fillStyle='#fff';x.fillText(s.n,X(s.x),Y(s.y))});
   let live='Odottaa anturidataa…';
   if(S.cur){
-    const p=toMM(S.cur,S.zero,cfg.dist);
+    const now=performance.now(),r=toMM(S.cur,S.zero,cfg.dist),sm=S.sm;
+    if(!sm){S.sm={x:r.x,y:r.y,t:now}}else{const a=cfg.smooth>0?1-Math.exp(-Math.min(now-sm.t,100)/cfg.smooth):1;sm.x+=(r.x-sm.x)*a;sm.y+=(r.y-sm.y)*a;sm.t=now}
+    const p=S.sm;
     x.strokeStyle=col('--fg');x.lineWidth=2;x.beginPath();x.arc(X(p.x),Y(p.y),12,0,7);x.moveTo(X(p.x)-18,Y(p.y));x.lineTo(X(p.x)+18,Y(p.y));x.moveTo(X(p.x),Y(p.y)-18);x.lineTo(X(p.x),Y(p.y)+18);x.stroke();
-    const now=performance.now();if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0}}
+    if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0}}
     live=`Tähtäys x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · ${S.hz.toFixed(0)} Hz · näkymä ±${vr.toFixed(0)} mm`;
   }
-  $('live').textContent=live;
+  if(performance.now()-(S.lt||0)>120){S.lt=performance.now();$('live').textContent=live}
   $('lv').style.width=Math.min(100,Math.sqrt(S.level)*100)+'%';$('th').style.left=cfg.thr+'%';
   requestAnimationFrame(draw);
 }
+const C={};
+function loadCols(){const cs=getComputedStyle(document.documentElement);for(const n of ['--fg','--mut','--line','--acc','--x','--y'])C[n]=cs.getPropertyValue(n).trim()}
+loadCols();matchMedia('(prefers-color-scheme: dark)').addEventListener('change',loadCols);
 render();draw();
 </script>
 </body>
