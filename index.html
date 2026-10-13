@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Asentomittari</title>
+<title>Kuivaharjoittelu</title>
 <style>
-:root{--bg:#f6f6f4;--card:#fff;--fg:#1c1c1a;--mut:#74746e;--line:#dcdcd6;--acc:#d9480f;--x:#1c7ed6;--y:#2f9e44;--z:#d9480f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--card:#1f1f1d;--fg:#ececE8;--mut:#9a9a92;--line:#34342f;--acc:#ff8a4c;--x:#74c0fc;--y:#8ce99a;--z:#ff8a4c}}
-:root[data-theme="dark"]{--bg:#141413;--card:#1f1f1d;--fg:#ececE8;--mut:#9a9a92;--line:#34342f;--acc:#ff8a4c;--x:#74c0fc;--y:#8ce99a;--z:#ff8a4c}
+:root{--bg:#f6f6f4;--card:#fff;--fg:#1c1c1a;--mut:#74746e;--line:#dcdcd6;--acc:#d9480f;--x:#1c7ed6;--y:#2f9e44;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--card:#1f1f1d;--fg:#ececE8;--mut:#9a9a92;--line:#34342f;--acc:#ff8a4c;--x:#74c0fc;--y:#8ce99a}}
+:root[data-theme="dark"]{--bg:#141413;--card:#1f1f1d;--fg:#ececE8;--mut:#9a9a92;--line:#34342f;--acc:#ff8a4c;--x:#74c0fc;--y:#8ce99a}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif;padding:14px;max-width:560px;margin-inline:auto}
 h1{font-size:18px;margin:0 0 10px}
@@ -15,86 +15,182 @@ h1{font-size:18px;margin:0 0 10px}
 .row{display:flex;gap:8px}
 button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:15px}
 button.p{background:var(--acc);color:#fff;border-color:var(--acc)}
-.ax{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center}
-.ax b{font-size:15px}.ax small{color:var(--mut)}
-.bar{height:8px;background:var(--line);border-radius:4px;position:relative}
-.bar i{position:absolute;top:-3px;width:4px;height:14px;border-radius:2px;left:50%}
-.val{font:600 20px ui-monospace,monospace;min-width:92px;text-align:right}
-#scene{height:190px;perspective:500px;display:flex;align-items:center;justify-content:center}
-#ph{width:80px;height:150px;border:3px solid var(--fg);border-radius:12px;background:var(--card);position:relative;transform-style:preserve-3d;will-change:transform}
-#ph::before{content:"";position:absolute;top:6px;left:50%;width:22px;height:4px;margin-left:-11px;background:var(--mut);border-radius:2px}
-#ph::after{content:"YLÄ";position:absolute;bottom:8px;width:100%;text-align:center;font-size:11px;color:var(--mut)}
-canvas{width:100%;aspect-ratio:1;border-radius:8px;background:var(--bg);display:block}
-.note{color:var(--mut);font-size:13px}
-input[type=range]{width:100%}
+canvas{width:100%;aspect-ratio:1;display:block;border-radius:8px;background:var(--bg)}
+.note{color:var(--mut);font-size:13px;margin-top:6px}
+.big{font:700 40px ui-monospace,monospace;color:var(--acc)}
+.meter{height:14px;background:var(--line);border-radius:7px;position:relative;overflow:hidden}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:var(--y);width:0}
+.meter u{position:absolute;top:0;bottom:0;width:3px;background:var(--acc)}
+input,select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:15px;margin:2px 0 10px}
+label{font-size:13px;color:var(--mut)}
+summary{font-weight:600}
+table{width:100%;border-collapse:collapse;font:13px ui-monospace,monospace}
+td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:500}
 </style>
 </head>
 <body>
-<h1>Puhelimen asento</h1>
-<div class="card row">
-  <button class="p" id="start">Käynnistä anturit</button>
-  <button id="zero">Nollaa (0°)</button>
-</div>
-<div class="card"><div id="scene"><div id="ph"></div></div></div>
-<div class="card ax">
-  <b style="color:var(--x)">X</b><div class="bar"><i id="bx" style="background:var(--x)"></i></div><span class="val" id="vx">–</span>
-  <small></small><small>etu-taka (beta)</small><span></span>
-  <b style="color:var(--y)">Y</b><div class="bar"><i id="by" style="background:var(--y)"></i></div><span class="val" id="vy">–</span>
-  <small></small><small>sivukallistus (gamma)</small><span></span>
-  <b style="color:var(--z)">Z</b><div class="bar"><i id="bz" style="background:var(--z)"></i></div><span class="val" id="vz">–</span>
-  <small></small><small>suunta (alpha)</small><span></span>
-</div>
+<h1>🎯 Kuivaharjoittelu</h1>
 <div class="card">
-  <canvas id="cv" width="480" height="480"></canvas>
-  <div class="row" style="margin-top:8px;align-items:center"><span class="note">Zoom</span><input id="zoom" type="range" min="1" max="30" value="10"><span class="note" id="zl">±10°</span></div>
-  <div class="note" id="st" style="margin-top:6px">Paina "Käynnistä anturit".</div>
+  <div class="row"><button class="p" id="start">Käynnistä</button><button id="zero">Nollaa tähtäys</button></div>
+  <div class="row" style="margin-top:8px"><button id="test">Testilaukaus</button><button id="clr">Tyhjennä sarja</button></div>
+  <div class="note" id="st">Paina "Käynnistä" (anturi- ja mikrofonilupa).</div>
 </div>
+<div class="card"><canvas id="cv" width="560" height="560"></canvas><div class="note" id="live"></div></div>
+<div class="card">
+  <div class="meter"><i id="lv"></i><u id="th"></u></div>
+  <input type="range" id="thr" min="1" max="100" style="margin-bottom:0">
+  <div class="note">Äänen taso ja laukaisukynnys (oranssi viiva). Säädä niin, että vain naksahdus ylittää sen.</div>
+</div>
+<div class="card" id="res"></div>
+<div class="card" id="stats"></div>
+<details class="card"><summary>Asetukset</summary><div style="margin-top:10px">
+  <label>Etäisyys tauluun (m)</label><input id="dist" type="number" min="1" step="1">
+  <label>Taulu</label><select id="preset">
+    <option value="300">300 m ISSF (10: Ø100 mm, väli 50 mm)</option>
+    <option value="50">50 m ISSF (10: Ø10,4 mm, väli 8 mm)</option>
+    <option value="10">10 m ilmakivääri (10: Ø0,5 mm, väli 2,5 mm)</option>
+    <option value="own">Oma</option></select>
+  <label>10-renkaan halkaisija (mm)</label><input id="d10" type="number" step="0.1">
+  <label>Renkaan leveys, säteen kasvu (mm)</label><input id="step" type="number" step="0.1">
+  <label>Puhelimen kiinnitys</label><select id="mount">
+    <option value="-z">Pystyssä, näyttö ampujaan päin</option>
+    <option value="+y">Litteänä, yläreuna kohti piippua</option>
+    <option value="+x">Kyljellään, oikea reuna kohti piippua</option>
+    <option value="-x">Kyljellään, vasen reuna kohti piippua</option></select>
+  <label>Äänen viive (ms, vähennetään laukaisuhetkestä)</label><input id="delay" type="number" step="5">
+</div></details>
+<div class="card"><table id="tbl"></table></div>
 <script>
-const $=id=>document.getElementById(id);
-let cur={a:0,b:0,g:0},off={a:0,b:0,g:0},trail=[],n=0,t0=performance.now(),got=false;
-const wrap=d=>((d+540)%360)-180;
+const $=id=>document.getElementById(id),D=Math.PI/180,wrap=d=>((d+540)%360)-180;
+const MV={'-z':[0,0,-1],'+y':[0,1,0],'+x':[1,0,0],'-x':[-1,0,0]};
+const PRE={'300':[100,50],'50':[10.4,8],'10':[0.5,2.5]};
+let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('kk')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}};
+const S={zero:{az:0,el:0},buf:[],shots:[],cur:null,last:0,n:0,t0:performance.now(),hz:0,level:0};
+
+for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1]]){
+  const e=$(id);e.value=cfg[id==='dist'?'dist':id];
+  e.oninput=e.onchange=()=>{
+    cfg[id]=num?(parseFloat(e.value)||0):e.value;
+    if(id==='preset'&&PRE[cfg.preset]){[cfg.d10,cfg.step]=PRE[cfg.preset];$('d10').value=cfg.d10;$('step').value=cfg.step}
+    if(id==='d10'||id==='step'){cfg.preset='own';$('preset').value='own'}
+    save();
+  };
+}
+
+// Suuntavektori: laitteen piippuakseli -> maa-koordinaatisto -> atsimuutti/korkeuskulma
+function aimOf(a,b,g){
+  const cA=Math.cos(a*D),sA=Math.sin(a*D),cB=Math.cos(b*D),sB=Math.sin(b*D),cG=Math.cos(g*D),sG=Math.sin(g*D);
+  const m=[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG, cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB, -cB*sG,sB,cB*cG];
+  const d=MV[cfg.mount];
+  const vx=m[0]*d[0]+m[1]*d[1]+m[2]*d[2],vy=m[3]*d[0]+m[4]*d[1]+m[5]*d[2],vz=m[6]*d[0]+m[7]*d[1]+m[8]*d[2];
+  return{az:Math.atan2(vx,vy)/D,el:Math.asin(Math.max(-1,Math.min(1,vz)))/D};
+}
+function toMM(s,z,dist){return{x:dist*1000*Math.tan(wrap(s.az-z.az)*D),y:dist*1000*Math.tan((s.el-z.el)*D)}}
+function onOri(e){
+  if(e.beta===null)return;
+  const a=aimOf(e.alpha||0,e.beta,e.gamma),t=performance.now();
+  S.cur=a;S.n++;S.buf.push({t,az:a.az,el:a.el});
+  while(S.buf.length&&t-S.buf[0].t>6000)S.buf.shift();
+}
+const near=t=>{let b=S.buf[0],bd=1e9;for(const s of S.buf){const d=Math.abs(s.t-t);if(d<bd){bd=d;b=s}}return b};
+
+function score(x,y){
+  const r=Math.hypot(x,y),r10=cfg.d10/2;
+  let v=r<=r10?10+0.9*(1-r/r10):10-(r-r10)/cfg.step;
+  v=Math.floor(v*10)/10;return v<1?0:v;
+}
+// Laukaus: luetaan asento laukaisuhetkellä, odotetaan 0,6 s jälkikäteisen jäljen vuoksi
+function fire(tShot){
+  const z={...S.zero},dist=cfg.dist,cap={d10:cfg.d10,step:cfg.step};
+  setTimeout(()=>{
+    if(S.buf.length<5)return;
+    const P=t=>toMM(near(t),z,dist),p=P(tShot),q=P(tShot-100);
+    const pre=S.buf.filter(s=>s.t>=tShot-1000&&s.t<=tShot-100).map(s=>toMM(s,z,dist));
+    let hold=null;
+    if(pre.length>=3){const mx=pre.reduce((a,b)=>a+b.x,0)/pre.length,my=pre.reduce((a,b)=>a+b.y,0)/pre.length;
+      hold=Math.sqrt(pre.reduce((a,b)=>a+(b.x-mx)**2+(b.y-my)**2,0)/pre.length)}
+    const trace=S.buf.filter(s=>s.t>=tShot-2000&&s.t<=tShot+500).map(s=>({...toMM(s,z,dist),post:s.t>tShot}));
+    S.shots.push({n:S.shots.length+1,x:p.x,y:p.y,dec:score(p.x,p.y),hold,jerk:Math.hypot(p.x-q.x,p.y-q.y),trace});
+    try{navigator.vibrate(60)}catch(e){}
+    render();
+  },600);
+}
+
+function render(){
+  const s=S.shots[S.shots.length-1],n=S.shots.length;
+  $('res').innerHTML=s?`<div class="big">${s.dec.toFixed(1)}</div><div class="note">Laukaus ${s.n} · x ${s.x.toFixed(1)} mm · y ${s.y.toFixed(1)} mm (oikea/ylös +)</div><div class="note">Heilunta ${s.hold==null?'–':s.hold.toFixed(1)} mm · laukaisuliike ${s.jerk.toFixed(1)} mm</div>`:'<span class="note">Ei laukauksia vielä.</span>';
+  if(n){
+    const avg=S.shots.reduce((a,b)=>a+b.dec,0)/n,mx=S.shots.reduce((a,b)=>a+b.x,0)/n,my=S.shots.reduce((a,b)=>a+b.y,0)/n;
+    let es=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)es=Math.max(es,Math.hypot(S.shots[i].x-S.shots[j].x,S.shots[i].y-S.shots[j].y));
+    $('stats').innerHTML=`<b>Sarja:</b> ${n} laukausta · keskiarvo ${avg.toFixed(2)} · keskipiste x ${mx.toFixed(1)} / y ${my.toFixed(1)} mm · hajonta ${es.toFixed(1)} mm`;
+  }else $('stats').innerHTML='<span class="note">Sarjan tilastot näkyvät tässä.</span>';
+  $('tbl').innerHTML='<tr><th>#</th><th>Pist.</th><th>x mm</th><th>y mm</th><th>heil.</th></tr>'+S.shots.slice(-8).reverse().map(s=>`<tr><td>${s.n}</td><td>${s.dec.toFixed(1)}</td><td>${s.x.toFixed(1)}</td><td>${s.y.toFixed(1)}</td><td>${s.hold==null?'–':s.hold.toFixed(1)}</td></tr>`).join('');
+}
+
+// Äänen tunnistus: etsitään ensimmäinen kynnyksen ylittävä näyte puskurista
+function listen(){
+  const buf=S.ab;S.an.getFloatTimeDomainData(buf);
+  const now=performance.now(),thr=Math.pow(cfg.thr/100,2);
+  let pk=0,first=-1;
+  for(let i=0;i<buf.length;i++){const v=Math.abs(buf[i]);if(v>pk)pk=v;if(first<0&&v>thr)first=i}
+  S.level=Math.max(pk,S.level*0.92);
+  if(first>=0&&now-S.last>1500){S.last=now;fire(now-(buf.length-1-first)/S.sr*1000-cfg.delay)}
+  requestAnimationFrame(listen);
+}
+
 async function start(){
-  try{
-    if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
-      const r=await DeviceOrientationEvent.requestPermission();
-      if(r!=='granted'){$('st').textContent='Lupa evätty.';return}
-    }
-  }catch(e){$('st').textContent='Lupapyyntö epäonnistui: '+e.message;return}
-  window.addEventListener('deviceorientation',e=>{
-    if(e.beta===null)return;
-    got=true;cur={a:e.alpha||0,b:e.beta,g:e.gamma};n++;
-    trail.push({t:performance.now(),x:wrap(cur.g-off.g),y:wrap(cur.b-off.b)});
-  });
-  $('st').textContent='Odotetaan anturidataa…';
-  setTimeout(()=>{if(!got)$('st').textContent='Ei anturidataa. Avaa sivu suoraan puhelimen selaimessa (ei upotettuna) ja salli liikeanturit.'},2000);
+  const st=$('st');
+  try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission&&await DeviceOrientationEvent.requestPermission()!=='granted'){st.textContent='Liikeanturilupa evätty.';return}}
+  catch(e){st.textContent='Liikeanturilupa epäonnistui.';return}
+  if(!S.sensing){window.addEventListener('deviceorientation',onOri);S.sensing=true}
+  let m='';
+  if(!S.an){
+    try{
+      const ms=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      const ac=new (window.AudioContext||window.webkitAudioContext)();await ac.resume();
+      const an=ac.createAnalyser();an.fftSize=2048;ac.createMediaStreamSource(ms).connect(an);
+      S.an=an;S.ab=new Float32Array(an.fftSize);S.sr=ac.sampleRate;listen();m='Mikrofoni käytössä. ';
+    }catch(e){m='Mikrofoni ei käytössä (käytä testilaukausta). '}
+  }
+  try{await navigator.wakeLock.request('screen')}catch(e){}
+  st.textContent=m+'Tähtää tauluun ja paina "Nollaa tähtäys". Kuivalaukaise.';
 }
 $('start').onclick=start;
-$('zero').onclick=()=>{off={...cur};trail=[]};
-$('zoom').oninput=e=>$('zl').textContent='±'+e.target.value+'°';
-function bar(id,v,r){$(id).style.left=(50+Math.max(-1,Math.min(1,v/r))*48)+'%'}
+$('zero').onclick=()=>{if(S.cur)S.zero={...S.cur}};
+$('test').onclick=()=>{if(!S.cur){$('st').textContent='Käynnistä anturit ensin.';return}S.last=performance.now();fire(performance.now())};
+$('clr').onclick=()=>{S.shots=[];render()};
+
 function draw(){
-  const a=wrap(cur.a-off.a),b=wrap(cur.b-off.b),g=wrap(cur.g-off.g);
-  $('vx').textContent=b.toFixed(1)+'°';$('vy').textContent=g.toFixed(1)+'°';$('vz').textContent=a.toFixed(1)+'°';
-  bar('bx',b,90);bar('by',g,90);bar('bz',a,180);
-  $('ph').style.transform=`rotateZ(${-a}deg) rotateX(${-b}deg) rotateY(${g}deg)`;
-  const c=$('cv'),x=c.getContext('2d'),W=c.width,R=+$('zoom').value,cs=getComputedStyle(document.documentElement);
-  const line=cs.getPropertyValue('--line').trim(),acc=cs.getPropertyValue('--acc').trim(),mut=cs.getPropertyValue('--mut').trim();
-  x.clearRect(0,0,W,W);x.strokeStyle=line;x.lineWidth=2;
-  for(let i=1;i<=3;i++){x.beginPath();x.arc(W/2,W/2,W/2*i/3.2,0,7);x.stroke()}
-  x.beginPath();x.moveTo(W/2,0);x.lineTo(W/2,W);x.moveTo(0,W/2);x.lineTo(W,W/2);x.stroke();
-  const now=performance.now();trail=trail.filter(p=>now-p.t<3000);
-  const px=v=>W/2+v/R*(W/2*0.95);
-  x.lineWidth=3;
-  for(let i=1;i<trail.length;i++){
-    x.globalAlpha=Math.max(0,1-(now-trail[i].t)/3000);x.strokeStyle=acc;
-    x.beginPath();x.moveTo(px(trail[i-1].x),px(trail[i-1].y));x.lineTo(px(trail[i].x),px(trail[i].y));x.stroke();
+  const c=$('cv'),x=c.getContext('2d'),W=c.width,cx=W/2,cs=getComputedStyle(document.documentElement),col=n=>cs.getPropertyValue(n).trim();
+  const r10=cfg.d10/2,R1=r10+9*cfg.step,vr=R1*1.1,k=cx/vr,X=m=>cx+Math.max(-vr,Math.min(vr,m))*k,Y=m=>cx-Math.max(-vr,Math.min(vr,m))*k;
+  x.clearRect(0,0,W,W);
+  x.fillStyle=col('--line');x.beginPath();x.arc(cx,cx,(r10+6*cfg.step)*k,0,7);x.fill();
+  x.strokeStyle=col('--mut');x.lineWidth=1.5;
+  for(let i=0;i<10;i++){x.beginPath();x.arc(cx,cx,Math.max(1,(r10+i*cfg.step)*k),0,7);x.stroke()}
+  x.beginPath();x.moveTo(cx,0);x.lineTo(cx,W);x.moveTo(0,cx);x.lineTo(W,cx);x.globalAlpha=.3;x.stroke();x.globalAlpha=1;
+  const last=S.shots[S.shots.length-1];
+  if(last){
+    x.lineWidth=3;
+    for(let i=1;i<last.trace.length;i++){const a=last.trace[i-1],b=last.trace[i];
+      x.strokeStyle=b.post?col('--x'):col('--acc');x.globalAlpha=.7;x.beginPath();x.moveTo(X(a.x),Y(a.y));x.lineTo(X(b.x),Y(b.y));x.stroke()}
+    x.globalAlpha=1;
   }
-  x.globalAlpha=1;x.fillStyle=acc;x.beginPath();x.arc(px(g),px(b),9,0,7);x.fill();
-  x.fillStyle=mut;x.font='20px system-ui';x.fillText('±'+R+'°',8,24);
-  if(got){const hz=n/((now-t0)/1000);if(now-t0>1000){$('st').textContent='Päivitys ~'+hz.toFixed(0)+' Hz';if(now-t0>3000){t0=now;n=0}}}
+  x.font='bold 14px system-ui';x.textAlign='center';x.textBaseline='middle';
+  S.shots.forEach(s=>{x.fillStyle=col('--acc');x.globalAlpha=s===last?1:.6;x.beginPath();x.arc(X(s.x),Y(s.y),10,0,7);x.fill();x.globalAlpha=1;x.fillStyle='#fff';x.fillText(s.n,X(s.x),Y(s.y))});
+  let live='Odottaa anturidataa…';
+  if(S.cur){
+    const p=toMM(S.cur,S.zero,cfg.dist);
+    x.strokeStyle=col('--fg');x.lineWidth=2;x.beginPath();x.arc(X(p.x),Y(p.y),12,0,7);x.moveTo(X(p.x)-18,Y(p.y));x.lineTo(X(p.x)+18,Y(p.y));x.moveTo(X(p.x),Y(p.y)-18);x.lineTo(X(p.x),Y(p.y)+18);x.stroke();
+    const now=performance.now();if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0}}
+    live=`Tähtäys x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · ${S.hz.toFixed(0)} Hz · näkymä ±${vr.toFixed(0)} mm`;
+  }
+  $('live').textContent=live;
+  $('lv').style.width=Math.min(100,Math.sqrt(S.level)*100)+'%';$('th').style.left=cfg.thr+'%';
   requestAnimationFrame(draw);
 }
-draw();
+render();draw();
 </script>
 </body>
 </html>
