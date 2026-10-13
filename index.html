@@ -23,7 +23,10 @@ canvas{width:100%;height:160px;display:block}
 </style></head><body>
 <h1>Gyro-ajautumatesti</h1>
 <p>Aseta puhelin paikoilleen tukea vasten (esim. pöydälle tai aseen päälle sen levätessä tukea vasten). Älä koske siihen testin aikana.</p>
-<button id="go">Aloita testi</button>
+<button id="go">Ajautumatesti (29 s)</button>
+<button id="mv" style="background:var(--card);color:var(--fg)">Liiketesti (30 s)</button>
+<p>Liiketesti: kalibroi levossa, liikuta puhelinta pienin tähtäilyliikkein ja palauta se samaan asentoon (esim. tasaisesti seinää tai pöydänreunaa vasten). Tulos kertoo virheen liikkeen jälkeen.</p>
+<div id="mres" class="card" hidden><div id="mv1" class="v"></div><p id="mv2"></p></div>
 <div class="card"><span id="st">Valmis.</span></div>
 <p id="dg"></p>
 <div id="res" hidden>
@@ -40,7 +43,7 @@ canvas{width:100%;height:160px;display:block}
  <p>1 mil = 1 m / 1000 m. Hyvä tulos: alle 0,3 mil 10 s:ssa.</p>
 </div>
 <script>
-const $=id=>document.getElementById(id),MIL=17.4533,PRE=5,CAL=3,TOT=20;
+const $=id=>document.getElementById(id),MIL=17.4533,PRE=5,SETTLE=2,CAL=5,TOT=24;
 let S=[];
 $('dg').textContent='Suojattu yhteys: '+(window.isSecureContext?'kyllä':'EI')+' · Upotettu kehykseen: '+(window.self!==window.top?'KYLLÄ (voi estää anturit)':'ei')+' · Anturi-API: '+('DeviceMotionEvent' in window?'on':'EI');
 function onM(e){const r=e.rotationRate;if(!r||r.alpha==null)return;S.push([performance.now()/1000,r.alpha,r.beta,r.gamma]);}
@@ -63,6 +66,7 @@ $('go').onclick=async()=>{
 function analyze(){
  if(S.length<50){$('st').textContent='Ei gyrodataa. Selain tai laite ei anna sitä (kokeile Chrome/Safari, salli liikeanturit).';return}
  $('st').textContent='Valmis.';
+ const s0=S[0][0];S=S.filter(s=>s[0]-s0>=SETTLE);
  const t0=S[0][0],tEnd=S[S.length-1][0]-t0;
  const cal=S.filter(s=>s[0]-t0<CAL),rest=S.filter(s=>s[0]-t0>=CAL);
  const bias=[1,2,3].map(i=>cal.reduce((a,s)=>a+s[i],0)/cal.length);
@@ -93,10 +97,42 @@ function draw(ser){
  const cv=$('cv'),g=cv.getContext('2d'),W=cv.width,H=cv.height,cs=getComputedStyle(document.documentElement);
  g.clearRect(0,0,W,H);
  let m=0.5;for(const p of ser)for(const x of p[1])m=Math.max(m,Math.abs(x));
- const X=t=>20+t/(TOT-CAL)*(W-30),Y=v=>H/2-v/m*(H/2-14);
+ const X=t=>20+t/(TOT-SETTLE-CAL)*(W-30),Y=v=>H/2-v/m*(H/2-14);
  g.strokeStyle=cs.getPropertyValue('--mut');g.lineWidth=1;g.beginPath();g.moveTo(20,H/2);g.lineTo(W-10,H/2);g.stroke();
  g.fillStyle=cs.getPropertyValue('--mut');g.font='16px sans-serif';g.fillText('+'+m.toFixed(1),22,14);g.fillText('-'+m.toFixed(1),22,H-4);
  const col=['#e4572e','#2e86ab','#6a994e'];
  for(let i=0;i<3;i++){g.strokeStyle=col[i];g.lineWidth=2;g.beginPath();ser.forEach((p,k)=>{k?g.lineTo(X(p[0]),Y(p[1][i])):g.moveTo(X(p[0]),Y(p[1][i]))});g.stroke()}
 }
+
+async function perm(){
+ try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission){return (await DeviceMotionEvent.requestPermission())==='granted'}}catch(e){return false}
+ return true;
+}
+const buzz=()=>{try{navigator.vibrate&&navigator.vibrate(250)}catch(e){}};
+async function phase(txt,sec){buzz();for(let i=sec;i>0;i--){$('st').textContent=txt+' '+i+' s';await wait(1)}}
+$('mv').onclick=async()=>{
+ $('mv').disabled=$('go').disabled=true;$('mres').hidden=true;$('res').hidden=true;
+ if(!await perm()){$('st').textContent='Lupa evätty.';$('mv').disabled=$('go').disabled=false;return}
+ await phase('Aseta puhelin paikoilleen, alkaa',PRE);
+ S=[];window.addEventListener('devicemotion',onM);
+ const m=[performance.now()/1000];
+ await phase('Odota, rauhoittuu',SETTLE);m.push(performance.now()/1000);
+ await phase('Kalibrointi, älä liikuta',CAL);m.push(performance.now()/1000);
+ await phase('LIIKUTA: tähtäile pienin liikkein',10);m.push(performance.now()/1000);
+ await phase('PALAUTA paikoilleen, pidä liikkumatta',8);m.push(performance.now()/1000);
+ buzz();window.removeEventListener('devicemotion',onM);
+ $('mv').disabled=$('go').disabled=false;$('st').textContent='Valmis.';
+ if(S.length<50){$('st').textContent='Ei gyrodataa.';return}
+ const cal=S.filter(s=>s[0]>=m[1]&&s[0]<m[2]);
+ const bias=[1,2,3].map(i=>cal.reduce((a,s)=>a+s[i],0)/Math.max(1,cal.length));
+ const run=S.filter(s=>s[0]>=m[2]&&s[0]<=m[4]);
+ let a=[0,0,0],peak=0,end=0;
+ for(let k=1;k<run.length;k++){const dt=run[k][0]-run[k-1][0];if(dt<=0||dt>0.2)continue;
+  for(let i=0;i<3;i++)a[i]+=(run[k][i+1]-bias[i])*dt;
+  const g=Math.hypot(a[0],a[1],a[2])*MIL;peak=Math.max(peak,g);end=g}
+ const v=end<0.5?['Hyvä','var(--acc)']:end<1.5?['Kohtalainen','var(--warn)']:['Heikko','var(--bad)'];
+ $('mv1').textContent='Virhe liikkeen jälkeen: '+end.toFixed(2)+' mil ('+v[0]+')';$('mv1').style.color=v[1];
+ $('mv2').textContent='Suurin poikkeama liikkeen aikana '+peak.toFixed(1)+' mil. '+(peak<20?'Liike jäi pieneksi (alle ~1°), toista isommalla liikkeellä. ':'')+'Luku sisältää myös palautuksen asentovirheen, joten se on pessimistinen arvio.';
+ $('mres').hidden=false;
+};
 </script></body></html>
