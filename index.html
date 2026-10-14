@@ -26,16 +26,31 @@ label{font-size:13px;color:var(--mut)}
 summary{font-weight:600}
 table{width:100%;border-collapse:collapse;font:13px ui-monospace,monospace}
 td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:500}
+.wxh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.wxh select{width:auto;margin:0}
+.wxg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wxg input,.wxg select{margin:2px 0 0}
 </style>
 </head>
 <body>
 <h1>🎯 Kuivaharjoittelu</h1>
 <div class="card">
-  <div class="row"><button class="p" id="start">Käynnistä</button><button id="zero">Nollaa tähtäys</button></div>
-  <div class="row" style="margin-top:8px"><button id="test">Testilaukaus</button><button id="clr">Tyhjennä sarja</button></div>
-  <div class="note" id="st">Paina "Käynnistä" (anturi- ja mikrofonilupa).</div>
+  <select id="prof" style="margin:0 0 8px"></select>
+  <button class="p" id="go" style="width:100%;font-size:17px;padding:14px">Aloita harjoitus</button>
+  <div class="note" id="st" style="font-size:14px"></div>
+  <div class="row" style="margin-top:8px"><button id="test">Testilaukaus</button><button id="clr">Tyhjennä</button><button id="exp">Vie / jaa</button></div>
 </div>
-<div class="card"><canvas id="cv" width="560" height="560"></canvas><div class="note" id="live"></div></div>
+<div class="card" id="wx">
+  <div class="wxh"><b>Sää ja tuuli</b><select id="bal"><option value="1">Ballistiikka päällä</option><option value="0">Ballistiikka pois</option></select></div>
+  <div class="wxg">
+    <div><label>Tuuli (m/s)</label><input id="wind" type="number" step="0.5" inputmode="decimal"></div>
+    <div><label>Suunta (kello)</label><select id="wdir"></select></div>
+    <div><label>Puuskat ± (m/s)</label><input id="gust" type="number" step="0.5" inputmode="decimal"></div>
+    <div><label>Lämpö (°C)</label><input id="temp" type="number" step="1" inputmode="decimal"></div>
+    <div><label>Paine (hPa)</label><input id="pres" type="number" step="1" inputmode="decimal"></div>
+    <div><label>Kosteus (%)</label><input id="hum" type="number" step="5" inputmode="decimal"></div>
+  </div>
+  <div class="row" style="margin-top:8px"><button id="wm">Tuuli −</button><button id="wp">Tuuli +</button><button id="wf">Hae sää</button></div><div class="note" id="wh">Napauta kenttää, niin tähän tulee lyhyt ohje.</div>
+</div>
+<div class="card"><canvas id="cv" width="560" height="560"></canvas><div class="note" id="live"></div><div class="note">Ristikko = piipun suunta nyt · numeroitu pallo = osumakohta · sininen X = piipun suunta laukaisuhetkellä.</div></div>
 <div class="card">
   <div class="meter"><i id="lv"></i><u id="th"></u></div>
   <input type="range" id="thr" min="1" max="100" style="margin-bottom:0">
@@ -43,38 +58,41 @@ td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:
 </div>
 <div class="card" id="res"></div>
 <div class="card" id="stats"></div>
-<details class="card"><summary>Asetukset</summary><div style="margin-top:10px">
-  <label>Etäisyys tauluun (m)</label><input id="dist" type="number" min="1" step="1">
-  <label>Taulu</label><select id="preset">
-    <option value="300">300 m ISSF (10: Ø100 mm, väli 50 mm)</option>
-    <option value="50">50 m ISSF (10: Ø10,4 mm, väli 8 mm)</option>
-    <option value="10">10 m ilmakivääri (10: Ø0,5 mm, väli 2,5 mm)</option>
-    <option value="own">Oma</option></select>
-  <label>10-renkaan halkaisija (mm)</label><input id="d10" type="number" step="0.1">
-  <label>Renkaan leveys, säteen kasvu (mm)</label><input id="step" type="number" step="0.1">
-  <label>Puhelimen kiinnitys</label><select id="mount">
-    <option value="-z">Pystyssä, näyttö ampujaan päin</option>
-    <option value="+y">Litteänä, yläreuna kohti piippua</option>
-    <option value="+x">Kyljellään, oikea reuna kohti piippua</option>
-    <option value="-x">Kyljellään, vasen reuna kohti piippua</option></select>
-  <label>Äänen viive (ms, vähennetään laukaisuhetkestä)</label><input id="delay" type="number" step="5">
-  <label>Tähtäyspisteen pehmennys (ms, 0 = pois). Vaikuttaa vain näyttöön, ei laukauksen paikkaan.</label><input id="smooth" type="number" min="0" step="10">
+<details class="card"><summary>Taulu ja puhelin</summary><div style="margin-top:10px">
+  <label>Etäisyys tauluun (m)</label><input id="dist" type="number" min="1" step="1"><div class="note" style="margin:-6px 0 10px">Etäisyys, jolle taulu on simuloitu. Osumakohta lasketaan tälle matkalle.</div>
+  <label>Taulu</label><select id="preset"><option value="300">300 m ISSF (10: Ø100 mm, väli 50 mm)</option><option value="50">50 m ISSF (10: Ø10,4 mm, väli 8 mm)</option><option value="10">10 m ilmakivääri (10: Ø0,5 mm, väli 2,5 mm)</option><option value="own">Oma</option></select><div class="note" style="margin:-6px 0 10px">Valitse taulu tai "Oma" ja syötä mitat alle.</div>
+  <label>10-renkaan halkaisija (mm)</label><input id="d10" type="number" step="0.1"><div class="note" style="margin:-6px 0 10px">Taulun mitta, määrittää pisteytyksen.</div>
+  <label>Renkaan leveys, säteen kasvu (mm)</label><input id="step" type="number" step="0.1"><div class="note" style="margin:-6px 0 10px">Kuinka paljon säde kasvaa rengasta kohti.</div>
+  <label>Puhelimen kiinnitys</label><select id="mount"><option value="-z">Pystyssä, näyttö ampujaan päin</option><option value="+y">Litteänä, yläreuna kohti piippua</option><option value="+x">Kyljellään, oikea reuna kohti piippua</option><option value="-x">Kyljellään, vasen reuna kohti piippua</option></select><div class="note" style="margin:-6px 0 10px">Miten puhelin on aseessa. Väärä valinta kääntää suunnat.</div>
+  <label>Äänen viive (ms)</label><input id="delay" type="number" step="5"><div class="note" style="margin:-6px 0 10px">Aloita arvolla 0. Säädä vain, jos osuma tuntuu siirtyneen ajassa.</div>
+  <label>Pisteen pehmennys (ms)</label><input id="smooth" type="number" min="0" step="10"><div class="note" style="margin:-6px 0 10px">Tasoittaa pisteen liikettä näytöllä, ei vaikuta tulokseen. 0 = pois.</div>
 </div></details>
-<details class="card"><summary>Ballistiikka ja olosuhteet</summary><div style="margin-top:10px"><div class="note" style="margin:0 0 10px">Syötä oman patruunasi arvot (v0 ja G1-BC valmistajalta tai kronografista). Oletukset ovat yleisiä esimerkkiarvoja, eivätkä vastaa tiettyä patruunaa.</div><div id="bf"></div></div></details>
+<details class="card"><summary>Ase</summary><div style="margin-top:10px"><div id="rf"></div><button id="zset" style="width:100%">Käytä nykyistä säätä nollausoloina</button><div class="note">Paina nollauksen jälkeen, jos tähtäin säädettiin nykyisessä säässä.</div></div></details>
+<details class="card"><summary>Patruuna</summary><div style="margin-top:10px"><div id="cf"></div>
+  <label>BC-tyyppi</label><select id="g7"><option value="0">G1</option><option value="1">G7</option></select><div class="note" style="margin:-6px 0 10px">Valitse valmistajan ilmoituksen mukaan. Väärä tyyppi antaa väärän pudotuksen.</div>
+  <label>Kronografin lukema (m/s) ja etäisyys piipusta (m)</label><div class="row"><input id="cvv" type="number" placeholder="m/s"><input id="cvd" type="number" placeholder="m" value="3"></div>
+  <button id="v0c" style="width:100%">Laske ja aseta v0</button><div class="note" id="cvr">Kronografi mittaa nopeuden hieman piipun edessä. Tästä lasketaan suuliekkanopeus.</div>
+  <div class="note">Oletusarvot ovat yleisiä esimerkkejä, eivät tietyn patruunan tietoja.</div></div></details>
+<details class="card"><summary>Profiilit (ase + patruuna)</summary><div style="margin-top:10px"><input id="pn" placeholder="esim. Mosin + Lapua 185 gr"><div class="row"><button id="ps">Tallenna</button><button id="pd">Poista valittu</button></div><div class="note">Tallentaa Ase- ja Patruuna-valikon arvot nimellä. Vaihda profiilia sivun ylälaidasta.</div></div></details>
+<details class="card" id="tdet"><summary>Pudotus- ja tuulitaulukko</summary><div style="margin-top:10px;overflow-x:auto"><table id="bt"></table><div class="note">Pudotus tähtäyslinjaan nähden nykyisellä nollauksella ja säällä (− = linjan alapuolella). Tuuli: − = vasemmalle. Vertaa halutessasi Lapua Ballisticsiin samoilla arvoilla.</div></div></details>
 <div class="card"><table id="tbl"></table></div>
 <script>
 const $=id=>document.getElementById(id),D=Math.PI/180,wrap=d=>((d+540)%360)-180;
 const MV={'-z':[0,0,-1],'+y':[0,1,0],'+x':[1,0,0],'-x':[-1,0,0]};
 const AX={'-z':{u:[0,1,0],r:[1,0,0]},'+y':{u:[0,0,1],r:[1,0,0]},'+x':{u:[0,0,1],r:[0,-1,0]},'-x':{u:[0,0,1],r:[0,1,0]}};
 const PRE={'300':[100,50],'50':[10.4,8],'10':[0.5,2.5]};
-let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60,bal:1,v0:800,bc:0.4,zeroD:100,sh:35,temp:15,pres:1013,hum:50,wind:0,wdir:3,gust:0,moa:2.5,vsd:6,lock:5};
+let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60,bal:1,zt:15,zp:1013,zh:50,dvdt:0,g7:0,v0:800,bc:0.4,zeroD:100,sh:35,temp:15,pres:1013,hum:50,wind:0,wdir:3,gust:0,moa:2.5,vsd:6};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('kk')||'{}'))}catch(e){}
-const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}};
+const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}if($('tdet')&&$('tdet').open)btab()};
 const S={zero:{az:0,el:0},buf:[],shots:[],cur:null,last:0,n:0,t0:performance.now(),hz:0,level:0};
 
-const BF=[['bal','Ballistiikka (1 = päällä, 0 = vain tähtäys)','1'],['v0','Suuliekkanopeus v0 (m/s)','5'],['bc','Ballistinen kerroin (G1 BC)','0.01'],['zeroD','Tähtäimen nollausetäisyys (m)','1'],['sh','Tähtäinkorkeus piipun yläpuolella (mm)','1'],['temp','Lämpötila (°C)','1'],['pres','Ilmanpaine (hPa)','1'],['hum','Ilmankosteus (%)','1'],['wind','Tuulen nopeus (m/s)','0.1'],['wdir','Tuulen suunta kellona (12 = vastatuuli, 3 = oikealta, 9 = vasemmalta)','0.5'],['gust','Tuulen puuskaisuus (m/s, hajonta)','0.1'],['moa','Aseen ja patruunan ryhmäkoko (MOA, 5 laukausta)','0.1'],['vsd','Nopeuden hajonta (m/s, SD)','1'],['lock','Laukaisu → luoti ulos (ms)','1']];
-$('bf').innerHTML=BF.map(([id,l,s])=>`<label>${l}</label><input id="${id}" type="number" step="${s}">`).join('');
-for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1],...BF.map(f=>[f[0],1])]){
+const RF=[['zeroD','Nollausetäisyys (m)','1','100 m suositellaan: nollaus on silloin vähiten herkkä sääolosuhteille.'],['sh','Tähtäinkorkeus (mm)','1','Mittaa työntömitalla piipun keskilinjasta tähtäyslinjaan. Virhe näkyy eniten pitkillä matkoilla.'],['moa','Ryhmäkoko (MOA, 5 laukausta)','0.1','Aseen ja patruunan tuottama hajonta, esim. omien 5 laukauksen ryhmien keskiarvo.'],['zt','Nollauksen lämpötila (°C)','1','Lämpötila, jossa tähtäin säädettiin. Nollaus tehdään kerran, joten sään muutos ei korjaa sitä.'],['zp','Nollauksen ilmanpaine (hPa)','1','Ilmanpaine nollaushetkellä.'],['zh','Nollauksen kosteus (%)','5','Kosteus nollaushetkellä. 50 % käy, jos et tiedä.']];
+const CF=[['v0','Suuliekkanopeus v0 (m/s)','5','Mittaa kronografilla (ks. alla) tai käytä valmistajan arvoa. Anna se nollauksen lämpötilassa. 7.62×54R:llä tyypillisesti noin 760–850 m/s.'],['bc','Ballistinen kerroin (BC)','0.01','Luodin valmistajan ilmoittama arvo. Valitse alta, onko se G1 vai G7. 7.62×54R:n luodeilla G1 on noin 0,34–0,51.'],['vsd','Nopeuden hajonta (m/s, SD)','1','Kronografisarjan keskihajonta. Vaikuttaa pystyhajontaan pitkillä matkoilla.'],['dvdt','Lämpötilaherkkyys (m/s per °C)','0.1','Kuinka paljon nopeus muuttuu lämpötilan mukana. 0 = ei vaikutusta. Mittaa kronografilla eri lämpötiloissa.']];
+const fld=a=>a.map(([id,l,st,h])=>`<label>${l}</label><input id="${id}" type="number" step="${st}" inputmode="decimal"><div class="note" style="margin:-6px 0 10px">${h}</div>`).join('');
+$('rf').innerHTML=fld(RF);$('cf').innerHTML=fld(CF);
+$('wdir').innerHTML=[...Array(12)].map((_,i)=>{const n=i+1,t={12:' (vastaan)',3:' (oikealta)',6:' (takaa)',9:' (vasemmalta)'}[n]||'';return `<option value="${n}">${n}${t}</option>`}).join('');
+
+for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1],...[...RF,...CF].map(f=>[f[0],1]),...['bal','g7','temp','pres','hum','wind','wdir','gust'].map(i=>[i,1])]){
   const e=$(id);e.value=cfg[id==='dist'?'dist':id];
   e.oninput=e.onchange=()=>{
     cfg[id]=num?(parseFloat(e.value)||0):e.value;
@@ -103,27 +121,38 @@ function onOri(e){
 const near=t=>{let b=S.buf[0],bd=1e9;for(const s of S.buf){const d=Math.abs(s.t-t);if(d<bd){bd=d;b=s}}return b};
 
 // Ballistiikka: pistemassamalli, G1-vastus (karkea taulukko), ilmakehä, tuuli, kallistus, hajonta
-const G1=[[0,.2629],[.5,.2032],[.6,.2034],[.7,.2165],[.8,.2546],[.9,.3415],[1,.4805],[1.1,.5883],[1.2,.6393],[1.4,.6625],[1.6,.6474],[1.8,.621],[2,.5934],[2.4,.5481],[3,.5133]];
-function cd(m){for(let i=1;i<G1.length;i++)if(m<=G1[i][0]){const a=G1[i-1],b=G1[i];return a[1]+(b[1]-a[1])*(m-a[0])/(b[0]-a[0])}return G1[G1.length-1][1]}
-function atmo(){const T=cfg.temp+273.15,es=6.1078*Math.pow(10,7.5*cfg.temp/(237.3+cfg.temp)),pv=es*cfg.hum,pd=cfg.pres*100-pv;return{rho:pd/(287.05*T)+pv/(461.5*T),c:Math.sqrt(1.4*287.05*T)}}
+const G1=[[0,.2629],[.5,.2032],[.6,.2034],[.7,.2165],[.8,.2546],[.85,.2901],[.9,.3415],[.95,.4084],[1,.4805],[1.05,.5427],[1.1,.5883],[1.2,.6393],[1.3,.6589],[1.4,.6625],[1.5,.6573],[1.6,.6474],[1.8,.621],[2,.5934],[2.2,.5685],[2.4,.5481],[2.6,.5325],[3,.5133]];
+const G7=[[0,.1198],[.5,.1194],[.7,.1202],[.8,.1242],[.9,.1464],[.95,.2054],[1,.3803],[1.05,.4043],[1.2,.3884],[1.4,.358],[1.6,.3315],[1.8,.3117],[2,.298],[2.4,.2752],[3,.2424]];
+function cd(m){const T=cfg.g7==1?G7:G1;for(let i=1;i<T.length;i++)if(m<=T[i][0]){const a=T[i-1],b=T[i];return a[1]+(b[1]-a[1])*(m-a[0])/(b[0]-a[0])}return T[T.length-1][1]}
+function atmo(t=cfg.temp,p=cfg.pres,h=cfg.hum){const T=t+273.15,es=6.1078*Math.pow(10,7.5*t/(237.3+t)),pv=es*h,pd=p*100-pv;return{rho:pd/(287.05*T)+pv/(461.5*T),c:Math.sqrt(1.4*287.05*T)}}
 const gauss=()=>{let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random())};
 // Luodin korkeus tähtäyslinjaan nähden matkalla L; a = nostokulma (rad), hw = vastatuuli, g = putoamiskiihtyvyys
-function flight(v0,a,L,hw,g){
-  const A=atmo(),k=Math.PI/8*A.rho/(Math.max(cfg.bc,0.05)*703.07),dt=0.001;
+function flight(v0,a,L,hw,g,at){
+  const A=at||atmo(),k=Math.PI/8*A.rho/(Math.max(cfg.bc,0.05)*703.07),dt=0.001;
   let x=0,y=-cfg.sh/1000,vx=v0*Math.cos(a),vy=v0*Math.sin(a),t=0;
   while(x<L&&t<4){const rx=vx+hw,sp=Math.hypot(rx,vy),f=k*sp*cd(sp/A.c);vx+=-f*rx*dt;vy+=(-f*vy-g)*dt;x+=vx*dt;y+=vy*dt;t+=dt}
-  const e=(x-L)/vx;return{y:y-vy*e,t:t-e};
+  const e=(x-L)/vx;return{y:y-vy*e,t:t-e,v:Math.hypot(vx,vy)};
 }
-function zeroAngle(){let lo=-0.02,hi=0.05;for(let i=0;i<30;i++){const mid=(lo+hi)/2;if(flight(cfg.v0,mid,cfg.zeroD,0,9.80665).y<0)lo=mid;else hi=mid}return(lo+hi)/2}
+function zeroAngle(){let lo=-0.02,hi=0.05;for(let i=0;i<30;i++){const mid=(lo+hi)/2;if(flight(cfg.v0,mid,cfg.zeroD,0,9.80665,atmo(cfg.zt,cfg.zp,cfg.zh)).y<0)lo=mid;else hi=mid}return(lo+hi)/2}
 // Palauttaa osumakohdan siirtymän tähtäyspisteestä (mm): pudotus, tuuli, kallistus ja hajonta
 function bal(L,inc,cant){
-  if(!cfg.bal)return{on:0,x:0,y:0,g:0,w:0,c:cant,dx:0,dy:0};
+  if(!cfg.bal)return{on:0,x:0,y:0,bx:0,by:0,g:0,w:0,c:cant,dx:0,dy:0};
   const ang=cfg.wdir*30*D,w=cfg.wind+cfg.gust*gauss(),cw=-w*Math.sin(ang),hw=w*Math.cos(ang);
-  const a=zeroAngle(),v=cfg.v0+cfg.vsd*gauss(),gi=9.80665*Math.cos(inc*D);
+  const a=zeroAngle(),v=veff()+cfg.vsd*gauss(),gi=9.80665*Math.cos(inc*D);
   const fg=flight(v,a,L,hw,gi),fb=flight(v,a,L,hw,0),c=cant*D;
   const G=(fb.y-fg.y)*1000,B=fb.y*1000,wm=cw*(fg.t-L/v)*1000;
   const s=cfg.moa/2.5*2.909e-4*L*1000,dx=s*gauss(),dy=s*gauss();
-  return{on:1,x:B*Math.sin(c)+wm+dx,y:B*Math.cos(c)-G+dy,g:fg.y*1000,w:wm,c:cant,dx,dy};
+  return{on:1,x:B*Math.sin(c)+wm+dx,y:B*Math.cos(c)-G+dy,bx:B*Math.sin(c),by:B*Math.cos(c),g:G,w:wm,c:cant,dx,dy};
+}
+// Piipun akselin korkeus tähtäyslinjaan nähden (mm), välimuistissa
+let BC_={k:'',B:0};
+const veff=()=>cfg.v0+(cfg.dvdt||0)*(cfg.temp-cfg.zt);
+const ck=()=>[cfg.v0,cfg.bc,cfg.g7,cfg.zeroD,cfg.sh,cfg.temp,cfg.pres,cfg.hum,cfg.wind,cfg.wdir,cfg.zt,cfg.zp,cfg.zh,cfg.dvdt].join();
+function boreShift(L,cant){
+  if(!cfg.bal)return{x:0,y:0};
+  const k=L+ck();
+  if(BC_.k!==k)BC_={k,B:flight(veff(),zeroAngle(),L,cfg.wind*Math.cos(cfg.wdir*30*D),0).y*1000};
+  const c=(cant||0)*D;return{x:BC_.B*Math.sin(c),y:BC_.B*Math.cos(c)};
 }
 function score(x,y){
   const r=Math.hypot(x,y),r10=cfg.d10/2;
@@ -135,14 +164,14 @@ function fire(tShot){
   const z={...S.zero},dist=cfg.dist,cap={d10:cfg.d10,step:cfg.step};
   setTimeout(()=>{
     if(S.buf.length<5)return;
-    const P=t=>toMM(near(t),z,dist),p=P(tShot+cfg.lock),q=P(tShot-100);
+    const P=t=>toMM(near(t),z,dist),p=P(tShot),q=P(tShot-100);
     const pre=S.buf.filter(s=>s.t>=tShot-1000&&s.t<=tShot-100).map(s=>toMM(s,z,dist));
     let hold=null;
     if(pre.length>=3){const mx=pre.reduce((a,b)=>a+b.x,0)/pre.length,my=pre.reduce((a,b)=>a+b.y,0)/pre.length;
       hold=Math.sqrt(pre.reduce((a,b)=>a+(b.x-mx)**2+(b.y-my)**2,0)/pre.length)}
     const trace=S.buf.filter(s=>s.t>=tShot-2000&&s.t<=tShot+500).map(s=>({...toMM(s,z,dist),post:s.t>tShot}));
-    const s0=near(tShot+cfg.lock),b=bal(dist,z.el,s0.cant||0),hx=p.x+b.x,hy=p.y+b.y;
-    S.shots.push({n:S.shots.length+1,x:hx,y:hy,ax:p.x,ay:p.y,b,dec:score(hx,hy),hold,jerk:Math.hypot(p.x-q.x,p.y-q.y),trace});
+    const s0=near(tShot),b=bal(dist,z.el,s0.cant||0),hx=p.x+b.x,hy=p.y+b.y;
+    S.shots.push({n:S.shots.length+1,x:hx,y:hy,ax:p.x+b.bx,ay:p.y+b.by,sx:b.bx,sy:b.by,b,dec:score(hx,hy),hold,jerk:Math.hypot(p.x-q.x,p.y-q.y),trace});
     try{navigator.vibrate(60)}catch(e){}
     render();
   },600);
@@ -150,7 +179,7 @@ function fire(tShot){
 
 function render(){
   const s=S.shots[S.shots.length-1],n=S.shots.length;
-  $('res').innerHTML=s?`<div class="big">${s.dec.toFixed(1)}</div><div class="note">Laukaus ${s.n} · x ${s.x.toFixed(1)} mm · y ${s.y.toFixed(1)} mm (oikea/ylös +)</div>${s.b&&s.b.on?`<div class="note">Tähtäys x ${s.ax.toFixed(1)} / y ${s.ay.toFixed(1)} mm · pudotus ${s.b.g.toFixed(0)} mm · tuuli ${s.b.w.toFixed(0)} mm · kallistus ${s.b.c.toFixed(1)}° · hajonta x ${s.b.dx.toFixed(0)} / y ${s.b.dy.toFixed(0)} mm</div>`:''}<div class="note">Heilunta ${s.hold==null?'–':s.hold.toFixed(1)} mm · laukaisuliike ${s.jerk.toFixed(1)} mm</div>`:'<span class="note">Ei laukauksia vielä.</span>';
+  $('res').innerHTML=s?`<div class="big">${s.dec.toFixed(1)}</div><div class="note">Laukaus ${s.n} · x ${s.x.toFixed(1)} mm · y ${s.y.toFixed(1)} mm (oikea/ylös +) · ${(Math.hypot(s.x,s.y)/(cfg.dist*0.2909)).toFixed(1)} MOA / ${(Math.hypot(s.x,s.y)/cfg.dist).toFixed(2)} mrad keskeltä</div>${s.b&&s.b.on?`<div class="note">Piipun suunta x ${s.ax.toFixed(1)} / y ${s.ay.toFixed(1)} mm · pudotus −${s.b.g.toFixed(0)} mm · tuuli ${s.b.w.toFixed(0)} mm · kallistus ${s.b.c.toFixed(1)}° · hajonta x ${s.b.dx.toFixed(0)} / y ${s.b.dy.toFixed(0)} mm</div>`:''}<div class="note">Heilunta ${s.hold==null?'–':s.hold.toFixed(1)} mm · laukaisuliike ${s.jerk.toFixed(1)} mm</div>`:'<span class="note">Ei laukauksia vielä.</span>';
   if(n){
     const avg=S.shots.reduce((a,b)=>a+b.dec,0)/n,mx=S.shots.reduce((a,b)=>a+b.x,0)/n,my=S.shots.reduce((a,b)=>a+b.y,0)/n;
     let es=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)es=Math.max(es,Math.hypot(S.shots[i].x-S.shots[j].x,S.shots[i].y-S.shots[j].y));
@@ -185,10 +214,55 @@ async function start(){
     }catch(e){m='Mikrofoni ei käytössä (käytä testilaukausta). '}
   }
   try{await navigator.wakeLock.request('screen')}catch(e){}
-  st.textContent=m+'Tähtää tauluun ja paina "Nollaa tähtäys". Kuivalaukaise.';
+  S.mic=m;setStep(1);
 }
-$('start').onclick=start;
-$('zero').onclick=()=>{if(S.cur){S.zero={...S.cur};S.sm=null}};
+const STX=['1/3 Paina "Aloita harjoitus" ja salli anturit ja mikrofoni.','2/3 Tähtää aseen tähtäimillä taulun keskelle ja paina "Nollaa".','3/3 Valmis! Kuivalaukaise. Nollaa uudelleen aina, kun tähtäät uudelleen.'];
+function setStep(n){S.step=n;$('go').textContent=['Aloita harjoitus','Nollaa (tähtäin keskelle)','Nollaa uudelleen'][n];$('st').textContent=STX[n]+(n==1&&S.mic?' '+S.mic:'')}
+$('go').onclick=async()=>{if(!S.step)await start();else if(S.cur){S.zero={...S.cur};S.sm=null;setStep(2)}};
+$('zset').onclick=()=>{cfg.zt=cfg.temp;cfg.zp=cfg.pres;cfg.zh=cfg.hum;for(const k of ['zt','zp','zh'])$(k).value=cfg[k];save()};
+$('wm').onclick=()=>{cfg.wind=Math.max(0,Math.round((cfg.wind-0.5)*2)/2);$('wind').value=cfg.wind;save()};
+$('wp').onclick=()=>{cfg.wind=Math.round((cfg.wind+0.5)*2)/2;$('wind').value=cfg.wind;save()};
+$('wf').onclick=()=>{
+  $('wh').textContent='Haetaan sijaintia…';
+  navigator.geolocation.getCurrentPosition(async p=>{try{
+    const u=`https://api.open-meteo.com/v1/forecast?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m&wind_speed_unit=ms`;
+    const c=(await(await fetch(u)).json()).current;
+    Object.assign(cfg,{temp:Math.round(c.temperature_2m),hum:Math.round(c.relative_humidity_2m),pres:Math.round(c.surface_pressure),wind:Math.round(c.wind_speed_10m*2)/2});
+    for(const k of ['temp','hum','pres','wind'])$(k).value=cfg[k];save();
+    $('wh').textContent='Sää haettu. Tuuli on 10 m korkeudelta (maan tasolla yleensä heikompi) ja suunta syötetään itse. Tarkista arvot paikan päällä.';
+  }catch(e){$('wh').textContent='Sään haku epäonnistui. Syötä arvot käsin.'}},()=>{$('wh').textContent='Sijaintilupa evätty. Syötä sää käsin.'});
+};
+$('v0c').onclick=()=>{const vm=+$('cvv').value,d=+$('cvd').value;if(!vm||!d){$('cvr').textContent='Syötä lukema ja etäisyys.';return}
+  let lo=vm,hi=vm*1.3;for(let i=0;i<30;i++){const m=(lo+hi)/2;if(flight(m,0,d,0,0,atmo(cfg.zt,cfg.zp,cfg.zh)).v<vm)lo=m;else hi=m}
+  cfg.v0=Math.round((lo+hi)/2);$('v0').value=cfg.v0;save();$('cvr').textContent='v0 ≈ '+cfg.v0+' m/s (asetettu).'};
+// Profiilit
+const PF=['zeroD','sh','moa','zt','zp','zh','v0','bc','g7','vsd','dvdt'];
+let PR={};try{PR=JSON.parse(localStorage.getItem('kkp')||'{}')}catch(e){}
+const savePR=()=>{try{localStorage.setItem('kkp',JSON.stringify(PR))}catch(e){}};
+function profList(sel){$('prof').innerHTML='<option value="">Profiili: ei valittu</option>'+Object.keys(PR).map(n=>`<option>${n}</option>`).join('');$('prof').value=sel||''}
+$('prof').onchange=()=>{const p=PR[$('prof').value];if(!p)return;PF.forEach(k=>{if(p[k]!==undefined){cfg[k]=p[k];$(k).value=p[k]}});save();BC_.k='';$('pn').value=$('prof').value};
+$('ps').onclick=()=>{const n=$('pn').value.trim().replace(/[<>&"']/g,'');if(!n)return;PR[n]={};PF.forEach(k=>PR[n][k]=cfg[k]);savePR();profList(n)};
+$('pd').onclick=()=>{const n=$('prof').value;if(n){delete PR[n];savePR();profList('')}};
+// Taulukko
+function btab(){
+  const a=zeroAngle(),ang=cfg.wdir*30*D,cw=-cfg.wind*Math.sin(ang),hw=cfg.wind*Math.cos(ang),v0=veff();
+  let h='<tr><th>m</th><th>cm</th><th>mrad</th><th>MOA</th><th>tuuli cm</th><th>m/s</th></tr>';
+  for(const L of [50,100,150,200,250,300,400]){const f=flight(v0,a,L,hw,9.80665),mr=f.y/L*1000;
+    h+=`<tr><td>${L}</td><td>${(f.y*100).toFixed(1)}</td><td>${mr.toFixed(2)}</td><td>${(mr*3.438).toFixed(1)}</td><td>${(cw*(f.t-L/v0)*100).toFixed(1)}</td><td>${f.v.toFixed(0)}</td></tr>`}
+  $('bt').innerHTML=h;
+}
+$('tdet').ontoggle=()=>{if($('tdet').open)btab()};
+// Vienti
+$('exp').onclick=async()=>{
+  if(!S.shots.length)return;
+  const csv='n;pisteet;x_mm;y_mm;heilunta_mm;laukaisuliike_mm;pudotus_mm;tuuli_mm;kallistus_deg\n'+S.shots.map(s=>[s.n,s.dec.toFixed(1),s.x.toFixed(1),s.y.toFixed(1),s.hold==null?'':s.hold.toFixed(1),s.jerk.toFixed(1),s.b.g.toFixed(0),s.b.w.toFixed(0),s.b.c.toFixed(1)].join(';')).join('\n');
+  try{if(navigator.share){await navigator.share({title:'Kuivaharjoitus',text:csv});return}}catch(e){}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='kuivaharjoitus.csv';a.click();
+};
+const WH={bal:'Ballistiikka pois: osuma on piipun suunta ilman pudotusta, tuulta tai hajontaa.',wind:'Tuulen nopeus ampumapaikalla. Sivutuuli työntää luotia sivuun, vastatuuli vaikuttaa vähän.',wdir:'Mistä tuuli puhaltaa katsottuna ampujasta tauluun päin: 12 = vastaan, 3 = oikealta, 6 = takaa, 9 = vasemmalta.',gust:'Kuinka paljon tuuli vaihtelee laukauksesta toiseen (m/s). 0 = tasainen tuuli.',temp:'Ulkolämpötila. Vaikuttaa ilman tiheyteen ja, jos syötät lämpötilaherkkyyden, myös nopeuteen.',pres:'Ilmanpaine ampumapaikalla (hPa), ei merenpinnan paine. Sääsovellukset näyttävät usein merenpinnan paineen.',hum:'Vaikutus on pieni. 50 % käy, jos et tiedä.'};
+for(const k in WH)$(k).dataset.h=WH[k];
+document.addEventListener('focusin',e=>{const h=e.target.dataset&&e.target.dataset.h;if(h)$('wh').textContent=h});
+profList('');setStep(0);
 $('test').onclick=()=>{if(!S.cur){$('st').textContent='Käynnistä anturit ensin.';return}S.last=performance.now();fire(performance.now())};
 $('clr').onclick=()=>{S.shots=[];render()};
 
@@ -204,7 +278,7 @@ function draw(){
   if(last){
     x.lineWidth=3;
     for(let i=1;i<last.trace.length;i++){const a=last.trace[i-1],b=last.trace[i];
-      x.strokeStyle=b.post?col('--x'):col('--acc');x.globalAlpha=.7;x.beginPath();x.moveTo(X(a.x),Y(a.y));x.lineTo(X(b.x),Y(b.y));x.stroke()}
+      x.strokeStyle=b.post?col('--x'):col('--acc');x.globalAlpha=.7;x.beginPath();x.moveTo(X(a.x+last.sx),Y(a.y+last.sy));x.lineTo(X(b.x+last.sx),Y(b.y+last.sy));x.stroke()}
     x.globalAlpha=1;
   }
   x.font='bold 14px system-ui';x.textAlign='center';x.textBaseline='middle';
@@ -212,12 +286,12 @@ function draw(){
   if(last&&last.b&&last.b.on){x.strokeStyle=col('--x');x.lineWidth=2;const qx=X(last.ax),qy=Y(last.ay);x.beginPath();x.moveTo(qx-6,qy-6);x.lineTo(qx+6,qy+6);x.moveTo(qx+6,qy-6);x.lineTo(qx-6,qy+6);x.stroke()}
   let live='Odottaa anturidataa…';
   if(S.cur){
-    const now=performance.now(),r=toMM(S.cur,S.zero,cfg.dist),sm=S.sm;
+    const now=performance.now(),r0=toMM(S.cur,S.zero,cfg.dist),bs=boreShift(cfg.dist,S.cur.cant),r={x:r0.x+bs.x,y:r0.y+bs.y},sm=S.sm;
     if(!sm){S.sm={x:r.x,y:r.y,t:now}}else{const a=cfg.smooth>0?1-Math.exp(-Math.min(now-sm.t,100)/cfg.smooth):1;sm.x+=(r.x-sm.x)*a;sm.y+=(r.y-sm.y)*a;sm.t=now}
     const p=S.sm;
     x.strokeStyle=col('--fg');x.lineWidth=2;x.beginPath();x.arc(X(p.x),Y(p.y),12,0,7);x.moveTo(X(p.x)-18,Y(p.y));x.lineTo(X(p.x)+18,Y(p.y));x.moveTo(X(p.x),Y(p.y)-18);x.lineTo(X(p.x),Y(p.y)+18);x.stroke();
     if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0}}
-    live=`Tähtäys x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · ${S.hz.toFixed(0)} Hz · näkymä ±${vr.toFixed(0)} mm`;
+    live=`Piipun suunta x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · kallistus ${S.cur.cant.toFixed(1)}° · ${S.hz.toFixed(0)} Hz · näkymä ±${vr.toFixed(0)} mm`;
   }
   if(performance.now()-(S.lt||0)>120){S.lt=performance.now();$('live').textContent=live}
   $('lv').style.width=Math.min(100,Math.sqrt(S.level)*100)+'%';$('th').style.left=cfg.thr+'%';
