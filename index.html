@@ -65,6 +65,7 @@ td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:
   <label>Renkaan leveys, säteen kasvu (mm)</label><input id="step" type="number" step="0.1"><div class="note" style="margin:-6px 0 10px">Kuinka paljon säde kasvaa rengasta kohti.</div>
   <label>Puhelimen kiinnitys</label><select id="mount"><option value="-z">Pystyssä, näyttö ampujaan päin</option><option value="+y">Litteänä, yläreuna kohti piippua</option><option value="+x">Kyljellään, oikea reuna kohti piippua</option><option value="-x">Kyljellään, vasen reuna kohti piippua</option></select><div class="note" style="margin:-6px 0 10px">Miten puhelin on aseessa. Väärä valinta kääntää suunnat.</div>
   <label>Äänen viive (ms)</label><input id="delay" type="number" step="5"><div class="note" style="margin:-6px 0 10px">Aloita arvolla 0. Säädä vain, jos osuma tuntuu siirtyneen ajassa.</div>
+  <label>Gyro (sulava liike)</label><select id="gy"><option value="1">Päällä</option><option value="0">Pois</option></select><div class="note" style="margin:-6px 0 10px">Gyro tasoittaa pisteen liikkeen. Jos piste käyttäytyy oudosti (esim. liikkuu väärään suuntaan), kokeile "Pois". Tila näkyy kuvan alla.</div>
   <label>Pisteen pehmennys (ms)</label><input id="smooth" type="number" min="0" step="10"><div class="note" style="margin:-6px 0 10px">Tasoittaa pisteen liikettä näytöllä, ei vaikuta tulokseen. 0 = pois.</div>
 </div></details>
 <details class="card"><summary>Ase</summary><div style="margin-top:10px"><div id="rf"></div><button id="zset" style="width:100%">Käytä nykyistä säätä nollausoloina</button><div class="note">Paina nollauksen jälkeen, jos tähtäin säädettiin nykyisessä säässä.</div></div></details>
@@ -81,7 +82,7 @@ const $=id=>document.getElementById(id),D=Math.PI/180,wrap=d=>((d+540)%360)-180;
 const MV={'-z':[0,0,-1],'+y':[0,1,0],'+x':[1,0,0],'-x':[-1,0,0]};
 const AX={'-z':{u:[0,1,0],r:[1,0,0]},'+y':{u:[0,0,1],r:[1,0,0]},'+x':{u:[0,0,1],r:[0,-1,0]},'-x':{u:[0,0,1],r:[0,1,0]}};
 const PRE={'300':[100,50],'50':[10.4,8],'10':[0.5,2.5]};
-let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60,bal:1,zt:15,zp:1013,zh:50,dvdt:0,g7:0,v0:800,bc:0.4,zeroD:100,sh:35,temp:15,pres:1013,hum:50,wind:0,wdir:3,gust:0,moa:2.5,vsd:6};
+let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:30,gy:1,bal:1,zt:15,zp:1013,zh:50,dvdt:0,g7:0,v0:800,bc:0.4,zeroD:100,sh:35,temp:15,pres:1013,hum:50,wind:0,wdir:3,gust:0,moa:2.5,vsd:6};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('kk')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}if($('tdet')&&$('tdet').open)btab()};
 const S={zero:{az:0,el:0},buf:[],shots:[],cur:null,last:0,n:0,t0:performance.now(),hz:0,level:0};
@@ -92,7 +93,7 @@ const fld=a=>a.map(([id,l,st,h])=>`<label>${l}</label><input id="${id}" type="nu
 $('rf').innerHTML=fld(RF);$('cf').innerHTML=fld(CF);
 $('wdir').innerHTML=[...Array(12)].map((_,i)=>{const n=i+1,t={12:' (vastaan)',3:' (oikealta)',6:' (takaa)',9:' (vasemmalta)'}[n]||'';return `<option value="${n}">${n}${t}</option>`}).join('');
 
-for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1],...[...RF,...CF].map(f=>[f[0],1]),...['bal','g7','temp','pres','hum','wind','wdir','gust'].map(i=>[i,1])]){
+for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1],...[...RF,...CF].map(f=>[f[0],1]),...['bal','g7','gy','temp','pres','hum','wind','wdir','gust'].map(i=>[i,1])]){
   const e=$(id);e.value=cfg[id==='dist'?'dist':id];
   e.oninput=e.onchange=()=>{
     cfg[id]=num?(parseFloat(e.value)||0):e.value;
@@ -102,22 +103,61 @@ for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],
   };
 }
 
-// Suuntavektori: laitteen piippuakseli -> maa-koordinaatisto -> atsimuutti/korkeuskulma
-function aimOf(a,b,g){
+// === fusion: gyro (devicemotion) + asento (deviceorientation) -> sulava kvaternio
+function rotM(a,b,g){
   const cA=Math.cos(a*D),sA=Math.sin(a*D),cB=Math.cos(b*D),sB=Math.sin(b*D),cG=Math.cos(g*D),sG=Math.sin(g*D);
-  const m=[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG, cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB, -cB*sG,sB,cB*cG];
-  const d=MV[cfg.mount];
-  const vx=m[0]*d[0]+m[1]*d[1]+m[2]*d[2],vy=m[3]*d[0]+m[4]*d[1]+m[5]*d[2],vz=m[6]*d[0]+m[7]*d[1]+m[8]*d[2];
+  return[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG, cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB, -cB*sG,sB,cB*cG];
+}
+// Suuntavektori: laitteen piippuakseli -> maa-koordinaatisto -> atsimuutti/korkeuskulma/kallistus
+function aimM(m){
+  const d=MV[cfg.mount],vx=m[0]*d[0]+m[1]*d[1]+m[2]*d[2],vy=m[3]*d[0]+m[4]*d[1]+m[5]*d[2],vz=m[6]*d[0]+m[7]*d[1]+m[8]*d[2];
   const ax=AX[cfg.mount],U=[m[6],m[7],m[8]],dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
   return{az:Math.atan2(vx,vy)/D,el:Math.asin(Math.max(-1,Math.min(1,vz)))/D,cant:Math.atan2(-dt(U,ax.r),dt(U,ax.u))/D};
 }
-function toMM(s,z,dist){return{x:dist*1000*Math.tan(wrap(s.az-z.az)*D),y:dist*1000*Math.tan((s.el-z.el)*D)}}
-function onOri(e){
-  if(e.beta===null)return;
-  const a=aimOf(e.alpha||0,e.beta,e.gamma),t=performance.now();
-  S.cur=a;S.n++;S.buf.push({t,az:a.az,el:a.el,cant:a.cant});
+const qm=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1],a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];
+const nrm=q=>{const n=Math.hypot(...q);return q.map(v=>v/n)};
+function q2m(q){const[w,x,y,z]=q;return[1-2*(y*y+z*z),2*(x*y-w*z),2*(x*z+w*y),2*(x*y+w*z),1-2*(x*x+z*z),2*(y*z-w*x),2*(x*z-w*y),2*(y*z+w*x),1-2*(x*x+y*y)]}
+function m2q(m){
+  const t=m[0]+m[4]+m[8];let w,x,y,z;
+  if(t>0){const s=Math.sqrt(t+1)*2;w=s/4;x=(m[7]-m[5])/s;y=(m[2]-m[6])/s;z=(m[3]-m[1])/s}
+  else if(m[0]>m[4]&&m[0]>m[8]){const s=Math.sqrt(1+m[0]-m[4]-m[8])*2;w=(m[7]-m[5])/s;x=s/4;y=(m[1]+m[3])/s;z=(m[2]+m[6])/s}
+  else if(m[4]>m[8]){const s=Math.sqrt(1+m[4]-m[0]-m[8])*2;w=(m[2]-m[6])/s;x=(m[1]+m[3])/s;y=s/4;z=(m[5]+m[7])/s}
+  else{const s=Math.sqrt(1+m[8]-m[0]-m[4])*2;w=(m[3]-m[1])/s;x=(m[2]+m[6])/s;y=(m[5]+m[7])/s;z=s/4}
+  return[w,x,y,z];
+}
+const G={q:null,b:[0,0,0],tm:0,to:0,err:0,hz:0,c:0,ne:0,on:true};
+function emit(t){
+  const a=aimM(q2m(G.q));S.cur=a;S.n++;S.buf.push({t,az:a.az,el:a.el,cant:a.cant});
   while(S.buf.length&&t-S.buf[0].t>6000)S.buf.shift();
 }
+// Asentotapahtuma on karkea (0,1° askel): tallennetaan korjaustavoitteeksi, ja gyro vedetään siihen hitaasti. Ilman gyroa käytetään suoraan.
+function onOri(e){
+  if(e.beta===null)return;
+  const t=performance.now(),qo=m2q(rotM(e.alpha||0,e.beta,e.gamma));
+  if(!G.q||!G.on||cfg.gy==0||t-G.tm>300){G.q=qo;G.qo=qo;G.to=t;emit(t);return}
+  const d=G.q[0]*qo[0]+G.q[1]*qo[1]+G.q[2]*qo[2]+G.q[3]*qo[3],sg=d<0?-1:1;
+  G.err=G.err*0.9+0.1*2*Math.acos(Math.min(1,Math.abs(d)))/D;
+  if(++G.ne>40&&G.err>3)G.on=false;
+  G.qo=qo;G.to=t;
+}
+// Gyron kulmanopeus (°/s, laitteen akselit x=beta, y=gamma, z=alpha) integroidaan jatkuvasti
+function onMotion(e){
+  const r=e.rotationRate,t=performance.now();
+  if(!r||r.alpha==null||!G.q)return;
+  const dt=G.tm?Math.min((t-G.tm)/1000,0.1):0;G.tm=t;
+  if(!G.on||!dt||cfg.gy==0)return;
+  G.c++;
+  let w=[r.beta*D,r.gamma*D,r.alpha*D];
+  if(t-G.to>400)for(let i=0;i<3;i++)G.b[i]+=0.02*(w[i]-G.b[i]);
+  w=w.map((v,i)=>v-G.b[i]);
+  const th=Math.hypot(...w)*dt;
+  if(th>1e-9){const h=th/2,c=Math.sin(h)*dt/th;G.q=nrm(qm(G.q,[Math.cos(h),w[0]*c,w[1]*c,w[2]*c]))}
+  if(G.qo){const o=G.qo,d=G.q[0]*o[0]+G.q[1]*o[1]+G.q[2]*o[2]+G.q[3]*o[3],sg=d<0?-1:1,k=1-Math.exp(-dt/1.5);G.q=nrm(G.q.map((v,i)=>v*(1-k)+sg*o[i]*k))}
+  emit(t);
+}
+const gs=()=>cfg.gy==0?'gyro pois':G.on?(performance.now()-G.tm<300?`gyro ${G.hz.toFixed(0)} Hz, ero ${G.err.toFixed(2)}°`:'ei gyroa'):'gyro pois (ei sovi laitteelle)';
+// === /fusion
+function toMM(s,z,dist){return{x:dist*1000*Math.tan(wrap(s.az-z.az)*D),y:dist*1000*Math.tan((s.el-z.el)*D)}}
 const near=t=>{let b=S.buf[0],bd=1e9;for(const s of S.buf){const d=Math.abs(s.t-t);if(d<bd){bd=d;b=s}}return b};
 
 // Ballistiikka: pistemassamalli, G1-vastus (karkea taulukko), ilmakehä, tuuli, kallistus, hajonta
@@ -203,7 +243,8 @@ async function start(){
   const st=$('st');
   try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission&&await DeviceOrientationEvent.requestPermission()!=='granted'){st.textContent='Liikeanturilupa evätty.';return}}
   catch(e){st.textContent='Liikeanturilupa epäonnistui.';return}
-  if(!S.sensing){window.addEventListener('deviceorientation',onOri);S.sensing=true}
+  try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)await DeviceMotionEvent.requestPermission()}catch(e){}
+  if(!S.sensing){window.addEventListener('deviceorientation',onOri);window.addEventListener('devicemotion',onMotion);S.sensing=true}
   let m='';
   if(!S.an){
     try{
@@ -290,8 +331,8 @@ function draw(){
     if(!sm){S.sm={x:r.x,y:r.y,t:now}}else{const a=cfg.smooth>0?1-Math.exp(-Math.min(now-sm.t,100)/cfg.smooth):1;sm.x+=(r.x-sm.x)*a;sm.y+=(r.y-sm.y)*a;sm.t=now}
     const p=S.sm;
     x.strokeStyle=col('--fg');x.lineWidth=2;x.beginPath();x.arc(X(p.x),Y(p.y),12,0,7);x.moveTo(X(p.x)-18,Y(p.y));x.lineTo(X(p.x)+18,Y(p.y));x.moveTo(X(p.x),Y(p.y)-18);x.lineTo(X(p.x),Y(p.y)+18);x.stroke();
-    if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0}}
-    live=`Piipun suunta x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · kallistus ${S.cur.cant.toFixed(1)}° · ${S.hz.toFixed(0)} Hz · näkymä ±${vr.toFixed(0)} mm`;
+    if(now-S.t0>1000){S.hz=S.n/((now-S.t0)/1000);G.hz=G.c/((now-S.t0)/1000);if(now-S.t0>3000){S.t0=now;S.n=0;G.c=0}}
+    live=`Piipun suunta x ${p.x.toFixed(1)} / y ${p.y.toFixed(1)} mm · kallistus ${S.cur.cant.toFixed(1)}° · ${S.hz.toFixed(0)} Hz · ${gs()} · näkymä ±${vr.toFixed(0)} mm`;
   }
   if(performance.now()-(S.lt||0)>120){S.lt=performance.now();$('live').textContent=live}
   $('lv').style.width=Math.min(100,Math.sqrt(S.level)*100)+'%';$('th').style.left=cfg.thr+'%';
