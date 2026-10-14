@@ -60,17 +60,21 @@ td,th{padding:3px 4px;text-align:right}th:first-child,td:first-child{text-align:
   <label>Äänen viive (ms, vähennetään laukaisuhetkestä)</label><input id="delay" type="number" step="5">
   <label>Tähtäyspisteen pehmennys (ms, 0 = pois). Vaikuttaa vain näyttöön, ei laukauksen paikkaan.</label><input id="smooth" type="number" min="0" step="10">
 </div></details>
+<details class="card"><summary>Ballistiikka ja olosuhteet</summary><div style="margin-top:10px"><div class="note" style="margin:0 0 10px">Syötä oman patruunasi arvot (v0 ja G1-BC valmistajalta tai kronografista). Oletukset ovat yleisiä esimerkkiarvoja, eivätkä vastaa tiettyä patruunaa.</div><div id="bf"></div></div></details>
 <div class="card"><table id="tbl"></table></div>
 <script>
 const $=id=>document.getElementById(id),D=Math.PI/180,wrap=d=>((d+540)%360)-180;
 const MV={'-z':[0,0,-1],'+y':[0,1,0],'+x':[1,0,0],'-x':[-1,0,0]};
+const AX={'-z':{u:[0,1,0],r:[1,0,0]},'+y':{u:[0,0,1],r:[1,0,0]},'+x':{u:[0,0,1],r:[0,-1,0]},'-x':{u:[0,0,1],r:[0,1,0]}};
 const PRE={'300':[100,50],'50':[10.4,8],'10':[0.5,2.5]};
-let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60};
+let cfg={dist:100,preset:'300',d10:100,step:50,mount:'-z',delay:0,thr:40,smooth:60,bal:1,v0:800,bc:0.4,zeroD:100,sh:35,temp:15,pres:1013,hum:50,wind:0,wdir:3,gust:0,moa:2.5,vsd:6,lock:5};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('kk')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('kk',JSON.stringify(cfg))}catch(e){}};
 const S={zero:{az:0,el:0},buf:[],shots:[],cur:null,last:0,n:0,t0:performance.now(),hz:0,level:0};
 
-for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1]]){
+const BF=[['bal','Ballistiikka (1 = päällä, 0 = vain tähtäys)','1'],['v0','Suuliekkanopeus v0 (m/s)','5'],['bc','Ballistinen kerroin (G1 BC)','0.01'],['zeroD','Tähtäimen nollausetäisyys (m)','1'],['sh','Tähtäinkorkeus piipun yläpuolella (mm)','1'],['temp','Lämpötila (°C)','1'],['pres','Ilmanpaine (hPa)','1'],['hum','Ilmankosteus (%)','1'],['wind','Tuulen nopeus (m/s)','0.1'],['wdir','Tuulen suunta kellona (12 = vastatuuli, 3 = oikealta, 9 = vasemmalta)','0.5'],['gust','Tuulen puuskaisuus (m/s, hajonta)','0.1'],['moa','Aseen ja patruunan ryhmäkoko (MOA, 5 laukausta)','0.1'],['vsd','Nopeuden hajonta (m/s, SD)','1'],['lock','Laukaisu → luoti ulos (ms)','1']];
+$('bf').innerHTML=BF.map(([id,l,s])=>`<label>${l}</label><input id="${id}" type="number" step="${s}">`).join('');
+for(const [id,num] of [['dist',1],['preset',0],['d10',1],['step',1],['mount',0],['delay',1],['thr',1],['smooth',1],...BF.map(f=>[f[0],1])]){
   const e=$(id);e.value=cfg[id==='dist'?'dist':id];
   e.oninput=e.onchange=()=>{
     cfg[id]=num?(parseFloat(e.value)||0):e.value;
@@ -86,17 +90,41 @@ function aimOf(a,b,g){
   const m=[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG, cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB, -cB*sG,sB,cB*cG];
   const d=MV[cfg.mount];
   const vx=m[0]*d[0]+m[1]*d[1]+m[2]*d[2],vy=m[3]*d[0]+m[4]*d[1]+m[5]*d[2],vz=m[6]*d[0]+m[7]*d[1]+m[8]*d[2];
-  return{az:Math.atan2(vx,vy)/D,el:Math.asin(Math.max(-1,Math.min(1,vz)))/D};
+  const ax=AX[cfg.mount],U=[m[6],m[7],m[8]],dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  return{az:Math.atan2(vx,vy)/D,el:Math.asin(Math.max(-1,Math.min(1,vz)))/D,cant:Math.atan2(-dt(U,ax.r),dt(U,ax.u))/D};
 }
 function toMM(s,z,dist){return{x:dist*1000*Math.tan(wrap(s.az-z.az)*D),y:dist*1000*Math.tan((s.el-z.el)*D)}}
 function onOri(e){
   if(e.beta===null)return;
   const a=aimOf(e.alpha||0,e.beta,e.gamma),t=performance.now();
-  S.cur=a;S.n++;S.buf.push({t,az:a.az,el:a.el});
+  S.cur=a;S.n++;S.buf.push({t,az:a.az,el:a.el,cant:a.cant});
   while(S.buf.length&&t-S.buf[0].t>6000)S.buf.shift();
 }
 const near=t=>{let b=S.buf[0],bd=1e9;for(const s of S.buf){const d=Math.abs(s.t-t);if(d<bd){bd=d;b=s}}return b};
 
+// Ballistiikka: pistemassamalli, G1-vastus (karkea taulukko), ilmakehä, tuuli, kallistus, hajonta
+const G1=[[0,.2629],[.5,.2032],[.6,.2034],[.7,.2165],[.8,.2546],[.9,.3415],[1,.4805],[1.1,.5883],[1.2,.6393],[1.4,.6625],[1.6,.6474],[1.8,.621],[2,.5934],[2.4,.5481],[3,.5133]];
+function cd(m){for(let i=1;i<G1.length;i++)if(m<=G1[i][0]){const a=G1[i-1],b=G1[i];return a[1]+(b[1]-a[1])*(m-a[0])/(b[0]-a[0])}return G1[G1.length-1][1]}
+function atmo(){const T=cfg.temp+273.15,es=6.1078*Math.pow(10,7.5*cfg.temp/(237.3+cfg.temp)),pv=es*cfg.hum,pd=cfg.pres*100-pv;return{rho:pd/(287.05*T)+pv/(461.5*T),c:Math.sqrt(1.4*287.05*T)}}
+const gauss=()=>{let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random())};
+// Luodin korkeus tähtäyslinjaan nähden matkalla L; a = nostokulma (rad), hw = vastatuuli, g = putoamiskiihtyvyys
+function flight(v0,a,L,hw,g){
+  const A=atmo(),k=Math.PI/8*A.rho/(Math.max(cfg.bc,0.05)*703.07),dt=0.001;
+  let x=0,y=-cfg.sh/1000,vx=v0*Math.cos(a),vy=v0*Math.sin(a),t=0;
+  while(x<L&&t<4){const rx=vx+hw,sp=Math.hypot(rx,vy),f=k*sp*cd(sp/A.c);vx+=-f*rx*dt;vy+=(-f*vy-g)*dt;x+=vx*dt;y+=vy*dt;t+=dt}
+  const e=(x-L)/vx;return{y:y-vy*e,t:t-e};
+}
+function zeroAngle(){let lo=-0.02,hi=0.05;for(let i=0;i<30;i++){const mid=(lo+hi)/2;if(flight(cfg.v0,mid,cfg.zeroD,0,9.80665).y<0)lo=mid;else hi=mid}return(lo+hi)/2}
+// Palauttaa osumakohdan siirtymän tähtäyspisteestä (mm): pudotus, tuuli, kallistus ja hajonta
+function bal(L,inc,cant){
+  if(!cfg.bal)return{on:0,x:0,y:0,g:0,w:0,c:cant,dx:0,dy:0};
+  const ang=cfg.wdir*30*D,w=cfg.wind+cfg.gust*gauss(),cw=-w*Math.sin(ang),hw=w*Math.cos(ang);
+  const a=zeroAngle(),v=cfg.v0+cfg.vsd*gauss(),gi=9.80665*Math.cos(inc*D);
+  const fg=flight(v,a,L,hw,gi),fb=flight(v,a,L,hw,0),c=cant*D;
+  const G=(fb.y-fg.y)*1000,B=fb.y*1000,wm=cw*(fg.t-L/v)*1000;
+  const s=cfg.moa/2.5*2.909e-4*L*1000,dx=s*gauss(),dy=s*gauss();
+  return{on:1,x:B*Math.sin(c)+wm+dx,y:B*Math.cos(c)-G+dy,g:fg.y*1000,w:wm,c:cant,dx,dy};
+}
 function score(x,y){
   const r=Math.hypot(x,y),r10=cfg.d10/2;
   let v=r<=r10?10+0.9*(1-r/r10):10-(r-r10)/cfg.step;
@@ -107,13 +135,14 @@ function fire(tShot){
   const z={...S.zero},dist=cfg.dist,cap={d10:cfg.d10,step:cfg.step};
   setTimeout(()=>{
     if(S.buf.length<5)return;
-    const P=t=>toMM(near(t),z,dist),p=P(tShot),q=P(tShot-100);
+    const P=t=>toMM(near(t),z,dist),p=P(tShot+cfg.lock),q=P(tShot-100);
     const pre=S.buf.filter(s=>s.t>=tShot-1000&&s.t<=tShot-100).map(s=>toMM(s,z,dist));
     let hold=null;
     if(pre.length>=3){const mx=pre.reduce((a,b)=>a+b.x,0)/pre.length,my=pre.reduce((a,b)=>a+b.y,0)/pre.length;
       hold=Math.sqrt(pre.reduce((a,b)=>a+(b.x-mx)**2+(b.y-my)**2,0)/pre.length)}
     const trace=S.buf.filter(s=>s.t>=tShot-2000&&s.t<=tShot+500).map(s=>({...toMM(s,z,dist),post:s.t>tShot}));
-    S.shots.push({n:S.shots.length+1,x:p.x,y:p.y,dec:score(p.x,p.y),hold,jerk:Math.hypot(p.x-q.x,p.y-q.y),trace});
+    const s0=near(tShot+cfg.lock),b=bal(dist,z.el,s0.cant||0),hx=p.x+b.x,hy=p.y+b.y;
+    S.shots.push({n:S.shots.length+1,x:hx,y:hy,ax:p.x,ay:p.y,b,dec:score(hx,hy),hold,jerk:Math.hypot(p.x-q.x,p.y-q.y),trace});
     try{navigator.vibrate(60)}catch(e){}
     render();
   },600);
@@ -121,7 +150,7 @@ function fire(tShot){
 
 function render(){
   const s=S.shots[S.shots.length-1],n=S.shots.length;
-  $('res').innerHTML=s?`<div class="big">${s.dec.toFixed(1)}</div><div class="note">Laukaus ${s.n} · x ${s.x.toFixed(1)} mm · y ${s.y.toFixed(1)} mm (oikea/ylös +)</div><div class="note">Heilunta ${s.hold==null?'–':s.hold.toFixed(1)} mm · laukaisuliike ${s.jerk.toFixed(1)} mm</div>`:'<span class="note">Ei laukauksia vielä.</span>';
+  $('res').innerHTML=s?`<div class="big">${s.dec.toFixed(1)}</div><div class="note">Laukaus ${s.n} · x ${s.x.toFixed(1)} mm · y ${s.y.toFixed(1)} mm (oikea/ylös +)</div>${s.b&&s.b.on?`<div class="note">Tähtäys x ${s.ax.toFixed(1)} / y ${s.ay.toFixed(1)} mm · pudotus ${s.b.g.toFixed(0)} mm · tuuli ${s.b.w.toFixed(0)} mm · kallistus ${s.b.c.toFixed(1)}° · hajonta x ${s.b.dx.toFixed(0)} / y ${s.b.dy.toFixed(0)} mm</div>`:''}<div class="note">Heilunta ${s.hold==null?'–':s.hold.toFixed(1)} mm · laukaisuliike ${s.jerk.toFixed(1)} mm</div>`:'<span class="note">Ei laukauksia vielä.</span>';
   if(n){
     const avg=S.shots.reduce((a,b)=>a+b.dec,0)/n,mx=S.shots.reduce((a,b)=>a+b.x,0)/n,my=S.shots.reduce((a,b)=>a+b.y,0)/n;
     let es=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)es=Math.max(es,Math.hypot(S.shots[i].x-S.shots[j].x,S.shots[i].y-S.shots[j].y));
@@ -180,6 +209,7 @@ function draw(){
   }
   x.font='bold 14px system-ui';x.textAlign='center';x.textBaseline='middle';
   S.shots.forEach(s=>{x.fillStyle=col('--acc');x.globalAlpha=s===last?1:.6;x.beginPath();x.arc(X(s.x),Y(s.y),10,0,7);x.fill();x.globalAlpha=1;x.fillStyle='#fff';x.fillText(s.n,X(s.x),Y(s.y))});
+  if(last&&last.b&&last.b.on){x.strokeStyle=col('--x');x.lineWidth=2;const qx=X(last.ax),qy=Y(last.ay);x.beginPath();x.moveTo(qx-6,qy-6);x.lineTo(qx+6,qy+6);x.moveTo(qx+6,qy-6);x.lineTo(qx-6,qy+6);x.stroke()}
   let live='Odottaa anturidataa…';
   if(S.cur){
     const now=performance.now(),r=toMM(S.cur,S.zero,cfg.dist),sm=S.sm;
