@@ -123,12 +123,15 @@ const SF=[
  {id:'wm',l:'Tuulen tila',o:[['rnd','Satunnainen (piilotettu)'],['man','Käsin (alla)']],d:'rnd',h:'Satunnaisessa tilassa sovellus arpoo tuulen ja kertoo sen vasta laukauksen jälkeen. Käsin-tilassa tuuli on alla annettu.'},
  {id:'ws',l:'Tuuli käsin',u:'m/s',d:3,h:'Tuulen nopeus, kun tila on Käsin.'},
  {id:'wd',l:'Tuulen suunta käsin',u:'klo',d:3,h:'Suunta kellotaulun mukaan: 12 = suoraan edestä, 3 = oikealta, 6 = takaa, 9 = vasemmalta.'},
- {id:'dl',l:'Äänen viive',u:'ms',d:80,h:'Aika äänen syntymisestä siihen, kun sovellus kuulee sen. Oletus 80 ms. Jos X-merkki osuu liikkeessä liian myöhäiseen kohtaan, säädä.'}];
+ {id:'dl',l:'Äänen viive',u:'ms',d:80,h:'Aika äänen syntymisestä siihen, kun sovellus kuulee sen. Oletus 80 ms. Jos X-merkki osuu liikkeessä liian myöhäiseen kohtaan, säädä.'},
+ {id:'lk',l:'Tauko laukauksen jälkeen',u:'s',d:3,h:'Näin pitkään laukauksen jälkeen kaikki äänet ohitetaan (esim. aseen lataus). Pidennä, jos latausääni tulkitaan yhä laukaukseksi.'},
+ {id:'sl',l:'Vakausraja ennen laukausta',u:'mil',d:6,h:'Napsahdus hyväksytään laukaukseksi vain, jos ase on pysynyt tätä rajaa vakaampana ennen ääntä. Latausäänet tulevat aseen liikkuessa, joten ne ohitetaan. Nosta arvoa, jos oikeita laukauksia ohitetaan. Laske, jos latausäänet menevät läpi. 0 poistaa tarkistuksen.'},
+ {id:'sw',l:'Vakauden tarkastusaika',u:'s',d:1,h:'Kuinka pitkältä ajalta ennen ääntä aseen vakaus tarkistetaan (enintään 3 s).'}];
 const WF=[
  {id:'tc',l:'Lämpötila',u:'°C',d:15,h:'Ilman lämpötila ampumapaikalla.'},
  {id:'pr',l:'Ilmanpaine',u:'hPa',d:1013.25,h:'Käytä aseman painetta, ei merenpinnalle korjattua painetta. Sääpalvelun "merenpinnan paine" ei kelpaa ilman korjausta. Hae sää -painike käyttää asemapainetta.'},
  {id:'hu',l:'Ilmankosteus',u:'%',d:50,h:'Vaikutus on pieni. 50 % käy hyvin.'}];
-const DEF={ses:{dist:600,td:500,wm:'rnd',ws:3,wd:3,dl:80,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,seen:false,step:100}};
+const DEF={ses:{dist:600,td:500,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,seen:false,step:100}};
 function defProfile(){const o={id:''+Date.now()+Math.random(),name:'Oletus (esimerkkiarvot)'};for(const f of PF)o[f.id]=f.d;return o}
 let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui}};
 try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui}}}}catch(e){}
@@ -323,10 +326,18 @@ function shot(dyMil,dzMil,roll,wnd){
 let frozen=null,ser=[],WND={ws:3,wd:3},mic=null,micOn=false,noise=.004,lastShot=0,lastPeak=0;
 function newWind(){WND=ST.ses.wm==='man'?{ws:V('ws'),wd:V('wd')}:{ws:Math.round(Math.random()*80)/10,wd:Math.round(Math.random()*24)/2||12}}
 const thresh=()=>.01+Math.pow(ST.ses.thr/100,2)*.9;
+function steadyAt(ts){
+ const lim=V('sl');if(!(lim>0))return true;
+ const w=Math.min(3,V('sw')||1)*1000,pts=trail.filter(p=>p[0]>=ts-w&&p[0]<=ts-50);
+ if(pts.length<Math.max(5,w/1000*25))return false;
+ const mx=pts.reduce((a,p)=>a+p[3],0)/pts.length,my=pts.reduce((a,p)=>a+p[4],0)/pts.length;
+ return Math.sqrt(pts.reduce((a,p)=>a+(p[3]-mx)**2+(p[4]-my)**2,0)/pts.length)<lim}
 function onPeak(p,t){
  lastPeak=Math.max(lastPeak*.92,p);const th=thresh();
  $('lvl').style.width=Math.min(100,lastPeak/th*50)+'%';
- if(p>th&&p>noise*6&&t-lastShot>1200){lastShot=t;fire(t-V('dl'))}
+ if(p>th&&p>noise*6&&t-lastShot>Math.max(1200,V('lk')*1000)){
+  const ts=t-V('dl');
+  if(steadyAt(ts)){lastShot=t;fire(ts)}else{lastShot=t-Math.max(0,V('lk')*1000-700);$('ms').textContent='Ääni ohitettu: ase liikkui (ei laukaus).'}}
  else if(p<=th)noise=noise*.99+p*.01}
 async function stopMic(){try{mic.node.disconnect();mic.src.disconnect();mic.st.getTracks().forEach(x=>x.stop());await ctx.close()}catch(e){}mic=null;micOn=false;$('mic').textContent='Mikrofoni päälle';$('ms').textContent='Mikrofoni pois.'}
 async function micToggle(){
