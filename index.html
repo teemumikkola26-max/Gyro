@@ -45,6 +45,11 @@ label{display:block;font-size:13px;color:var(--mut);margin:8px 0 2px}
 <div class="card"><p class="m" style="margin-top:0">Kallistus (cant)</p><div id="lv"></div></div>
 <div class="card"><canvas id="c3" width="720" height="480"></canvas></div>
 
+<details><summary>Lähde ja pehmennys</summary>
+ <label>Anturilähde</label><select id="src"><option value="api">Sensor API (kvaternioni)</option><option value="own">Oma fuusio (gyro + kiihtyvyys)</option><option value="do">deviceorientation</option></select>
+ <label>Näytön pehmennys (vain näkymä)</label><select id="sm"><option value="0">Ei</option><option value="1" selected>Kevyt</option><option value="2">Vahva</option></select>
+ <p class="m">Heilunta ja mittaus käyttävät aina suodattamatonta arvoa.</p>
+</details>
 <details><summary>Puhelimen kiinnitys</summary>
  <label>Aseen eteen (piippulinja)</label><select id="fw"></select>
  <label>Aseen ylä (kiikarin puoli)</label><select id="up"></select>
@@ -71,16 +76,16 @@ function mat(a,b,g){const cA=Math.cos(a),sA=Math.sin(a),cB=Math.cos(b),sB=Math.s
  return[[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG],[cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB],[-cB*sG,sB,cB*cG]]}
 const mul=(M,v)=>[0,1,2].map(i=>M[i][0]*v[0]+M[i][1]*v[1]+M[i][2]*v[2]);
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
-let Rd=null,sens=null,flip=null,lastP=null,steps=[],srcName='deviceorientation';
+let Rd=null,sens=null,flip=null,lastP=null,steps=[],srcName='deviceorientation',mode='api',running=false;
 function qmat(q){const[x,y,z,w]=q;return[[1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w)],[2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w)],[2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)]]}
 const tr=M=>[0,1,2].map(i=>[M[0][i],M[1][i],M[2][i]]);
 function onO(e){
  if(e.alpha==null||e.beta==null)return;
  Rd=mat(e.alpha*D,e.beta*D,e.gamma*D);
- if(!sens)apply(Rd);
+ if(mode==='do')apply(Rd);
 }
 function onS(){
- if(!sens||!sens.quaternion)return;
+ if(mode!=='api'||!sens||!sens.quaternion)return;
  srcName='Sensor API (täysi tarkkuus)';
  const M=qmat(sens.quaternion);
  if(flip===null&&Rd){const a=Rd[2],b=M[2],c=[M[0][2],M[1][2],M[2][2]],d1=a[0]*b[0]+a[1]*b[1]+a[2]*b[2],d2=a[0]*c[0]+a[1]*c[1]+a[2]*c[2];if(Math.abs(d1-d2)>.1)flip=d2>d1}
@@ -93,24 +98,74 @@ function apply(M){
  cur={p:Math.asin(Math.max(-1,Math.min(1,f[2]))),y:Math.atan2(f[0],f[1]),r:Math.atan2(-r[2],u[2])};
  const t=performance.now();n++;
  if(lastP!=null){const d=Math.abs(cur.p-lastP)*MIL;if(d>1e-4)steps.push([t,d])}lastP=cur.p;
- trail.push([t,wrap(cur.y-z0.y)*MIL,(cur.p-z0.p)*MIL]);
+ const rx=wrap(cur.y-z0.y)*MIL,ry=(cur.p-z0.p)*MIL,fl=oe(rx,ry,t);
+ trail.push([t,fl[0],fl[1],rx,ry]);
  while(trail.length&&t-trail[0][0]>2500)trail.shift();
 }
-$('z').onclick=()=>{z0={...cur};trail=[]};
+
+let q=[1,0,0,0],gyS=null,acS=null,gyT=0,acV=null,qInit=false;
+const qmul=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1],a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];
+const q2m=Q=>qmat([Q[1],Q[2],Q[3],Q[0]]);
+function m2q(M){const t=M[0][0]+M[1][1]+M[2][2];let w,x,y,z,s;
+ if(t>0){s=Math.sqrt(t+1)*2;w=s/4;x=(M[2][1]-M[1][2])/s;y=(M[0][2]-M[2][0])/s;z=(M[1][0]-M[0][1])/s}
+ else if(M[0][0]>M[1][1]&&M[0][0]>M[2][2]){s=Math.sqrt(1+M[0][0]-M[1][1]-M[2][2])*2;w=(M[2][1]-M[1][2])/s;x=s/4;y=(M[0][1]+M[1][0])/s;z=(M[0][2]+M[2][0])/s}
+ else if(M[1][1]>M[2][2]){s=Math.sqrt(1+M[1][1]-M[0][0]-M[2][2])*2;w=(M[0][2]-M[2][0])/s;x=(M[0][1]+M[1][0])/s;y=s/4;z=(M[1][2]+M[2][1])/s}
+ else{s=Math.sqrt(1+M[2][2]-M[0][0]-M[1][1])*2;w=(M[1][0]-M[0][1])/s;x=(M[0][2]+M[2][0])/s;y=(M[1][2]+M[2][1])/s;z=s/4}
+ return[w,x,y,z]}
+function initQ(a){
+ const m=Math.hypot(a[0],a[1],a[2]);if(m<1)return;const u=a.map(v=>v/m);
+ const d=u[1];let n=[-d*u[0],1-d*u[1],-d*u[2]];let l=Math.hypot(n[0],n[1],n[2]);
+ if(l<.2){n=[1-u[0]*u[0],-u[0]*u[1],-u[0]*u[2]];l=Math.hypot(n[0],n[1],n[2])}
+ n=n.map(v=>v/l);const e=cross(n,u);
+ q=m2q([e,n,u]);qInit=true}
+function fuse(w,dt,a){
+ if(a){const up=q2m(q)[2],m=Math.hypot(a[0],a[1],a[2]),ua=[a[0]/m,a[1]/m,a[2]/m],er=cross(ua,up),dv=Math.abs(m-9.81),kp=dv<.6?1.2:dv<1.5?.3:0;
+  w=[w[0]+kp*er[0],w[1]+kp*er[1],w[2]+kp*er[2]]}
+ const wn=Math.hypot(w[0],w[1],w[2]),th=wn*dt;let dq=[1,0,0,0];
+ if(th>1e-9){const sn=Math.sin(th/2)/wn;dq=[Math.cos(th/2),w[0]*sn,w[1]*sn,w[2]*sn]}
+ q=qmul(q,dq);const nn=Math.hypot(q[0],q[1],q[2],q[3]);q=q.map(v=>v/nn)}
+
+const OE={x:0,y:0,dx:0,dy:0,t:0};
+function oe(x,y,t){
+ const o={1:[3,.03],2:[1,.02]}[$('sm').value];
+ if(!o||!OE.t){OE.x=x;OE.y=y;OE.dx=OE.dy=0;OE.t=t;return[x,y]}
+ const dt=Math.max(.001,(t-OE.t)/1000);OE.t=t;
+ const al=fc=>1/(1+1/(2*Math.PI*fc)/dt);
+ OE.dx+=al(1)*((x-OE.x)/dt-OE.dx);OE.dy+=al(1)*((y-OE.y)/dt-OE.dy);
+ const a=al(o[0]+o[1]*Math.hypot(OE.dx,OE.dy));
+ OE.x+=a*(x-OE.x);OE.y+=a*(y-OE.y);return[OE.x,OE.y]}
+function onG(){
+ if(mode!=='own'||!qInit||!gyS)return;
+ const t=gyS.timestamp,dt=gyT?(t-gyT)/1000:0;gyT=t;
+ if(dt<=0||dt>.1)return;
+ fuse([gyS.x,gyS.y,gyS.z],dt,acV);apply(q2m(q))}
+function stopSrc(){for(const x of[sens,gyS,acS]){try{x&&x.stop()}catch(e){}}sens=gyS=acS=null;qInit=false;acV=null;gyT=0}
+async function startSrc(){
+ stopSrc();mode=$('src').value;srcName='deviceorientation';
+ if(mode==='do')return;
+ try{
+  const ps=await Promise.all(['accelerometer','gyroscope'].map(n=>navigator.permissions.query({name:n}).catch(()=>({state:'granted'}))));
+  if(ps.some(p=>p.state==='denied')){mode='do';return}
+  if(mode==='api'){
+   if(typeof RelativeOrientationSensor==='undefined'){mode='do';return}
+   sens=new RelativeOrientationSensor({frequency:60,referenceFrame:'device'});
+   sens.addEventListener('reading',onS);sens.addEventListener('error',()=>{mode='do';srcName='deviceorientation'});sens.start();
+  }else{
+   if(typeof Gyroscope==='undefined'||typeof Accelerometer==='undefined'){mode='do';return}
+   acS=new Accelerometer({frequency:60});gyS=new Gyroscope({frequency:60});
+   acS.addEventListener('reading',()=>{acV=[acS.x,acS.y,acS.z];if(!qInit)initQ(acV)});
+   gyS.addEventListener('reading',onG);
+   acS.addEventListener('error',()=>{mode='do';srcName='deviceorientation'});gyS.addEventListener('error',()=>{mode='do';srcName='deviceorientation'});
+   acS.start();gyS.start();srcName='Oma fuusio (gyro+kiihtyvyys)';
+  }
+ }catch(e){mode='do'}
+}
+for(const k of['src','sm']){if(sv[k])$(k).value=sv[k];$(k).onchange=()=>{sv[k]=$(k).value;save();OE.t=0;if(k=='src'&&running)startSrc()}}
+$('z').onclick=()=>{z0={...cur};trail=[];OE.t=0};
 $('go').onclick=async()=>{
  try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('st').textContent='Lupa evätty.';return}}}catch(e){$('st').textContent='Lupapyyntö epäonnistui.';return}
  window.removeEventListener('deviceorientation',onO);window.addEventListener('deviceorientation',onO);
- try{
-  if(typeof RelativeOrientationSensor!=='undefined'&&!sens){
-   const ps=await Promise.all(['accelerometer','gyroscope'].map(n=>navigator.permissions.query({name:n}).catch(()=>({state:'granted'}))));
-   if(ps.every(p=>p.state!=='denied')){
-    sens=new RelativeOrientationSensor({frequency:60,referenceFrame:'device'});
-    sens.addEventListener('reading',onS);
-    sens.addEventListener('error',()=>{sens=null;srcName='deviceorientation'});
-    sens.start();
-   }
-  }
- }catch(e){sens=null}
+ running=true;await startSrc();
  try{navigator.wakeLock&&navigator.wakeLock.request('screen')}catch(e){}
  $('st').textContent='Käynnissä. Aseta ase tähtäysasentoon ja paina Nollaa.';
  setTimeout(()=>{if(!R)$('st').textContent='Ei anturidataa. Avaa sivu Chromessa suojatulla (https) yhteydellä ja salli liiketunnistimet.'},2500);
@@ -127,7 +182,7 @@ function draw(){
  const fg=css('--fg'),mut=css('--mut'),acc=css('--acc'),bad=css('--bad'),line=css('--line');
  // wobble 1 s
  const w=trail.filter(p=>now-p[0]<1000);let wob=0;
- if(w.length>3){const mx=w.reduce((a,p)=>a+p[1],0)/w.length,my=w.reduce((a,p)=>a+p[2],0)/w.length;wob=Math.sqrt(w.reduce((a,p)=>a+(p[1]-mx)**2+(p[2]-my)**2,0)/w.length)}
+ if(w.length>3){const mx=w.reduce((a,p)=>a+p[3],0)/w.length,my=w.reduce((a,p)=>a+p[4],0)/w.length;wob=Math.sqrt(w.reduce((a,p)=>a+(p[3]-mx)**2+(p[4]-my)**2,0)/w.length)}
  const ms=steps.filter(x=>now-x[0]<3000);steps=ms;const mn=ms.length?Math.min(...ms.map(x=>x[1])):0;
  $('ex').textContent='Lähde: '+srcName+' · pienin askel '+mn.toFixed(2)+' mil · Abs. pitch '+(cur.p/D).toFixed(2)+'° · heilunta (1 s RMS) '+wob.toFixed(2)+' mil · '+Math.round(hz)+' Hz';
  // reticle
@@ -135,7 +190,8 @@ function draw(){
  g.clearRect(0,0,W,H);g.strokeStyle=line;g.lineWidth=2;
  for(let i=1;i<=S;i++){if(S>10&&i%5)continue;g.beginPath();g.arc(cx,cy,i*k,0,7);g.stroke()}
  g.strokeStyle=mut;g.beginPath();g.moveTo(0,cy);g.lineTo(W,cy);g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();
- for(let i=1;i<trail.length;i++){const a=1-(now-trail[i][0])/2500;if(a<=0)continue;g.strokeStyle=acc;g.globalAlpha=a;g.lineWidth=3;g.beginPath();g.moveTo(cx+trail[i-1][1]*k,cy-trail[i-1][2]*k);g.lineTo(cx+trail[i][1]*k,cy-trail[i][2]*k);g.stroke()}
+ const X=p=>cx+p[1]*k,Y=p=>cy-p[2]*k;
+ for(let i=2;i<trail.length;i++){const a=1-(now-trail[i][0])/2500;if(a<=0)continue;const A=trail[i-2],B=trail[i-1],C=trail[i];g.strokeStyle=acc;g.globalAlpha=a;g.lineWidth=3;g.beginPath();g.moveTo((X(A)+X(B))/2,(Y(A)+Y(B))/2);g.quadraticCurveTo(X(B),Y(B),(X(B)+X(C))/2,(Y(B)+Y(C))/2);g.stroke()}
  g.globalAlpha=1;
  if(trail.length){const p=trail[trail.length-1];g.fillStyle=bad;g.beginPath();g.arc(cx+p[1]*k,cy-p[2]*k,8,0,7);g.fill()}
  // 3D box
