@@ -2,6 +2,7 @@
 <html lang="fi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kuivaharjoittelu</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1d6b4f">
 <style>
 :root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--card:#f1f1ee;--acc:#1d6b4f;--bad:#c0392b;--line:#c9c9c4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--fg:#eee;--mut:#9a9a9a;--card:#232323;--acc:#5fc79a;--bad:#f2766d;--line:#444}}
@@ -26,9 +27,12 @@ canvas{width:100%;display:block;aspect-ratio:1/1}#c3{aspect-ratio:3/2}
 .q{display:inline-block;width:20px;height:20px;padding:0;border-radius:10px;font-size:12px;line-height:20px;background:var(--line);color:var(--fg)}
 .hp{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:4px;font-size:13px;color:var(--fg)}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav button{flex:1;border-radius:0;background:none;color:var(--mut);font-size:13px;padding:12px 2px}nav button.on{color:var(--acc)}
+nav button{flex:1;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:12px 1px}nav button.on{color:var(--acc)}
 table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}th,td{padding:5px 2px;text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:500}tr.hl{background:var(--card);font-weight:700}
 [hidden]{display:none!important}
+body.sm .nsm,body.sm nav,body.sm h1,body.sm #prn{display:none!important}
+body.sm #rs{font-size:34px}body.sm #rd{font-size:17px;color:var(--fg)}
+#smx{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:10px;z-index:5;padding:8px 12px;display:none}body.sm #smx{display:block}
 #ob{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
 #ob>div{background:var(--bg);border-radius:16px;padding:18px;max-width:420px;width:100%}
 </style></head><body>
@@ -36,8 +40,10 @@ table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:ta
 
 <section id="t_train">
  <div class="row"><button id="go">Käynnistä</button><button id="z" class="s">Nollaa</button></div>
+ <div class="row nsm"><button id="smb" class="s">Ampumatila</button><button id="rep" class="s">Näytä jälki</button></div>
+ <button id="smx" class="s">Poistu ampumatilasta</button>
  <div class="card"><span id="st">Paina Käynnistä. Ensimmäistä kertaa? Lisää → Opastus.</span></div>
- <div class="card"><div class="g">
+ <div class="card nsm"><div class="g">
   <div><span>Pitch (ylös+)</span><b id="vp">0.00</b><span id="dp"></span></div>
   <div><span>Yaw (oikea+)</span><b id="vy">0.00</b><span id="dy"></span></div>
   <div><span>Roll (oikea alas+)</span><b id="vr">0.00</b><span id="dr"></span></div>
@@ -58,7 +64,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:ta
   <p class="m" id="ms">Mikrofoni pois.</p></div>
  <div class="card"><div id="rs" style="font-weight:700;font-size:20px"></div><p id="rd" class="m"></p><canvas id="tc" width="640" height="640"></canvas>
   <div class="row"><button id="nw" class="s">Uusi tuuli</button><button id="cl" class="s">Tyhjennä sarja</button></div></div>
- <div class="card"><p class="m" style="margin-top:0">Kallistus (cant)</p><div id="lv"></div></div>
+ <div class="card nsm"><p class="m" style="margin-top:0">Kallistus (cant)</p><div id="lv"></div></div>
 </section>
 
 <section id="t_prof" hidden>
@@ -86,6 +92,13 @@ table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:ta
   <p class="m">Elevaatio on ylös-klikkejä nollauksesta. Tuuli: korjaus 3 m/s täydelle tuulelle (90°). Vertaa oikeaan ballistiikkalaskuriin.</p></div>
 </section>
 
+<section id="t_hist" hidden>
+ <h2>Nykyinen sarja</h2><div class="card" id="hs1"></div>
+ <h2>Koko historia</h2><div class="card" id="hs2"></div>
+ <div class="card" id="hs3"></div>
+ <div class="row"><button id="hcsv" class="s">Vie CSV</button><button id="hclr" class="s">Tyhjennä historia</button></div>
+</section>
+
 <section id="t_more" hidden>
  <h2>Harjoituksen asetukset</h2>
  <div class="card" data-form="ses" id="sf"></div>
@@ -97,13 +110,13 @@ table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:ta
   <label style="margin-top:8px">Aseen ylä (kiikarin puoli)</label><select id="up"></select>
   <p class="m">Oletus: puhelin näyttö ylöspäin, yläreuna piipun suuntaan.</p></div>
  <h2>Muu</h2>
- <div class="card"><label><input id="hintc" type="checkbox"> Näytä dope-vihje harjoitusnäkymässä</label>
+ <div class="card"><label><input id="hintc" type="checkbox"> Näytä dope-vihje harjoitusnäkymässä</label><label style="margin-top:6px"><input id="sayc" type="checkbox"> Puhu tulos ääneen</label>
   <div class="row"><button id="obb" class="s">Opastus</button><button id="rst" class="s">Nollaa kaikki tiedot</button></div></div>
  <div class="card"><canvas id="c3" width="720" height="480"></canvas></div>
  <p class="m">Laskenta: G7-vetomalli, ilmasto, tuuli, spin drift ja kallistus. Ei Coriolista. Ase aina tyhjä ja lipas pois.</p>
 </section>
 
-<nav id="nav"><button data-t="train" class="on">Harjoitus</button><button data-t="prof">Profiili</button><button data-t="wx">Sää</button><button data-t="dope">Dope</button><button data-t="more">Lisää</button></nav>
+<nav id="nav"><button data-t="train" class="on">Harjoitus</button><button data-t="prof">Profiili</button><button data-t="wx">Sää</button><button data-t="dope">Dope</button><button data-t="hist">Historia</button><button data-t="more">Lisää</button></nav>
 <div id="ob" hidden><div><h2 id="obt" style="margin-top:0"></h2><p id="obx" style="color:var(--fg);font-size:15px"></p><div class="row"><button id="obs" class="s">Ohita</button><button id="obn">Seuraava</button></div></div></div>
 
 <script>
@@ -126,15 +139,18 @@ const SF=[
  {id:'dl',l:'Äänen viive',u:'ms',d:80,h:'Aika äänen syntymisestä siihen, kun sovellus kuulee sen. Oletus 80 ms. Jos X-merkki osuu liikkeessä liian myöhäiseen kohtaan, säädä.'},
  {id:'lk',l:'Tauko laukauksen jälkeen',u:'s',d:3,h:'Näin pitkään laukauksen jälkeen kaikki äänet ohitetaan (esim. aseen lataus). Pidennä, jos latausääni tulkitaan yhä laukaukseksi.'},
  {id:'sl',l:'Vakausraja ennen laukausta',u:'mil',d:6,h:'Napsahdus hyväksytään laukaukseksi vain, jos ase on pysynyt tätä rajaa vakaampana ennen ääntä. Latausäänet tulevat aseen liikkuessa, joten ne ohitetaan. Nosta arvoa, jos oikeita laukauksia ohitetaan. Laske, jos latausäänet menevät läpi. 0 poistaa tarkistuksen.'},
- {id:'sw',l:'Vakauden tarkastusaika',u:'s',d:1,h:'Kuinka pitkältä ajalta ennen ääntä aseen vakaus tarkistetaan (enintään 3 s).'}];
+ {id:'sw',l:'Vakauden tarkastusaika',u:'s',d:1,h:'Kuinka pitkältä ajalta ennen ääntä aseen vakaus tarkistetaan (enintään 3 s).'},
+ {id:'tm',l:'Harjoitustila',o:[['free','Vapaa'],['wind','Tuulenarvio: uusi tuuli joka laukauksen jälkeen'],['rng','Vaihtuva matka: uusi matka joka laukauksen jälkeen']],d:'free',h:'Vapaa: matka ja tuuli pysyvät, kunnes muutat niitä. Tuulenarvio vaatii tuulen tilaksi Satunnainen. Vaihtuva matka arpoo uuden matkan alla olevalta väliltä, ja sinun pitää korjata elevaatio sen mukaan.'},
+ {id:'dmin',l:'Vaihtuvan matkan alaraja',u:'m',d:300,h:'Lyhin arvottava matka (askel 50 m).'},
+ {id:'dmax',l:'Vaihtuvan matkan yläraja',u:'m',d:900,h:'Pisin arvottava matka (askel 50 m).'}];
 const WF=[
  {id:'tc',l:'Lämpötila',u:'°C',d:15,h:'Ilman lämpötila ampumapaikalla.'},
  {id:'pr',l:'Ilmanpaine',u:'hPa',d:1013.25,h:'Käytä aseman painetta, ei merenpinnalle korjattua painetta. Sääpalvelun "merenpinnan paine" ei kelpaa ilman korjausta. Hae sää -painike käyttää asemapainetta.'},
  {id:'hu',l:'Ilmankosteus',u:'%',d:50,h:'Vaikutus on pieni. 50 % käy hyvin.'}];
-const DEF={ses:{dist:600,td:500,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,seen:false,step:100}};
+const DEF={ses:{dist:600,td:500,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,tm:'free',dmin:300,dmax:900,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,say:true,seen:false,step:100}};
 function defProfile(){const o={id:''+Date.now()+Math.random(),name:'Oletus (esimerkkiarvot)'};for(const f of PF)o[f.id]=f.d;return o}
-let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui}};
-try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui}}}}catch(e){}
+let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui},hist:[]};
+try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui},hist:Array.isArray(s.hist)?s.hist:[]}}}catch(e){}
 const save=()=>{try{localStorage.setItem('kh2',JSON.stringify(ST))}catch(e){}};
 const prof=()=>ST.profiles[ST.active];
 const V=id=>{const p=prof();return +(id in p?p[id]:id in ST.wx?ST.wx[id]:ST.ses[id])};
@@ -154,9 +170,9 @@ function updateHints(){
  let t='';
  if(ST.ui.hint){try{const P=params(),mil=(solveEl(P,V('dist'))-solveEl(P,V('zd')))*1000;t='Dope '+V('dist')+' m: ylös '+Math.round(mil/ckMil())+' klik ('+mil.toFixed(2)+' mil)'}catch(e){}}
  $('hint').textContent=t}
-function show(t){for(const id of['train','prof','wx','dope','more'])$('t_'+id).hidden=id!==t;
+function show(t){for(const id of['train','prof','wx','dope','hist','more'])$('t_'+id).hidden=id!==t;
  for(const b of document.querySelectorAll('#nav button'))b.classList.toggle('on',b.dataset.t===t);
- if(t==='dope')dope();if(t==='prof')renderProf();window.scrollTo(0,0)}
+ if(t==='dope')dope();if(t==='hist')renderHist();if(t==='prof')renderProf();window.scrollTo(0,0)}
 
 let R=null,cur={p:0,y:0,r:0},z0={p:0,y:0,r:0},FV=[0,1,0],RV=[1,0,0],UV=[0,0,1],trail=[],n=0,hz=0,tH=performance.now();
 const wrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
@@ -323,7 +339,7 @@ function shot(dyMil,dzMil,roll,wnd){
  const sg=V('sg'),sd=sg>0?1.25*(sg+1.2)*Math.pow(r.t,1.83)*.0254:0;
  return{dy:r.y-P.h*c,dz:r.z+sd-P.h*s,t:r.t,v:r.v}}
 // ===== Laukaisu, ääni ja tulokset =====
-let frozen=null,ser=[],WND={ws:3,wd:3},mic=null,micOn=false,noise=.004,lastShot=0,lastPeak=0;
+let speaking=false,muteUntil=0,lastFz=null,frozen=null,ser=[],WND={ws:3,wd:3},mic=null,micOn=false,noise=.004,lastShot=0,lastPeak=0;
 function newWind(){WND=ST.ses.wm==='man'?{ws:V('ws'),wd:V('wd')}:{ws:Math.round(Math.random()*80)/10,wd:Math.round(Math.random()*24)/2||12}}
 const thresh=()=>.01+Math.pow(ST.ses.thr/100,2)*.9;
 function steadyAt(ts){
@@ -333,6 +349,7 @@ function steadyAt(ts){
  const mx=pts.reduce((a,p)=>a+p[3],0)/pts.length,my=pts.reduce((a,p)=>a+p[4],0)/pts.length;
  return Math.sqrt(pts.reduce((a,p)=>a+(p[3]-mx)**2+(p[4]-my)**2,0)/pts.length)<lim}
 function onPeak(p,t){
+ if(speaking||t<muteUntil)return;
  lastPeak=Math.max(lastPeak*.92,p);const th=thresh();
  $('lvl').style.width=Math.min(100,lastPeak/th*50)+'%';
  if(p>th&&p>noise*6&&t-lastShot>Math.max(1200,V('lk')*1000)){
@@ -359,23 +376,31 @@ function fire(ts){
  const u=b[0]>a[0]?Math.max(0,Math.min(1,(ts-a[0])/(b[0]-a[0]))):0,L=j=>a[j]+(b[j]-a[j])*u,x=L(3),y=L(4),rl=L(5);
  const pre=h.filter(p=>p[0]>=ts-500&&p[0]<=ts);let wob=0;
  if(pre.length>2){const mx=pre.reduce((s,p)=>s+p[3],0)/pre.length,my=pre.reduce((s,p)=>s+p[4],0)/pre.length;wob=Math.sqrt(pre.reduce((s,p)=>s+(p[3]-mx)**2+(p[4]-my)**2,0)/pre.length)}
- frozen={pts:h.filter(p=>p[0]>=ts-1200).map(p=>[p[0],p[3],p[4]]),at:[0,x,y],until:performance.now()+5000};
+ frozen={pts:h.filter(p=>p[0]>=ts-1200).map(p=>[p[0],p[3],p[4]]),at:[0,x,y],until:performance.now()+5000};lastFz=frozen;
  try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
  const gs=ST.ses.wm==='rnd'?1+.25*(Math.random()+Math.random()+Math.random()-1.5):1,wd={ws:WND.ws*gs,wd:WND.wd};
  const r=shot(y,x,rl,wd),Dm=V('dist'),R=V('td')/2000;
  if(!r){$('rs').textContent='Luoti ei yltänyt taululle';$('rd').textContent='Alkunopeus on liian pieni tälle matkalle.';return}
  const hit=Math.hypot(r.dy,r.dz)<=R,mm=m=>m/Dm*1000,ck=ckMil(),ce=Math.round(-mm(r.dy)/ck),cw=Math.round(-mm(r.dz)/ck);
- ser.push({dy:r.dy,dz:r.dz,hit});if(ser.length>10)ser.shift();
+ const en={t:Date.now(),pn:prof().name,dm:Dm,hit,dy:r.dy,dz:r.dz,ym:mm(r.dy),zm:mm(r.dz),wob,ws:wd.ws,wc:wd.wd,ev:ST.ses.ev,wv:ST.ses.wv};
+ ser.push(en);if(ser.length>10)ser.shift();ST.hist.push(en);if(ST.hist.length>500)ST.hist.shift();
+ const corr=(ce>=0?'ylös ':'alas ')+Math.abs(ce)+' klik, '+(cw>=0?'oikealle ':'vasemmalle ')+Math.abs(cw)+' klik',kl=n=>n===1?'1 klikki':n+' klikkiä';
+ let sp=(hit?'Osuma. ':'Ohi. ')+'Korjaus '+(ce>=0?'ylös ':'alas ')+kl(Math.abs(ce))+', '+(cw>=0?'oikealle ':'vasemmalle ')+kl(Math.abs(cw))+'.',nx='';
+ if(ST.ses.tm==='wind'&&ST.ses.wm==='rnd')newWind();
+ if(ST.ses.tm==='rng'){const a=Math.max(100,V('dmin')),b=Math.max(a,V('dmax'));let d=Dm;for(let k=0;k<30&&d===Dm;k++)d=Math.round((a+Math.random()*(b-a))/50)*50;ST.ses.dist=d;updateHints();nx='<br>Seuraava matka: '+d+' m';sp+=' Seuraava matka '+d+' metriä.'}
+ save();
  $('rs').textContent=(hit?'OSUMA':'OHI')+' · '+ser.length+'. laukaus';$('rs').style.color=hit?'var(--acc)':'var(--bad)';
- $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br><b>Korjaus: '+(ce>=0?'ylös ':'alas ')+Math.abs(ce)+' klik, '+(cw>=0?'oikealle ':'vasemmalle ')+Math.abs(cw)+' klik</b><br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd;
- drawT()}
+ $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br><b>Korjaus: '+corr+'</b><br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd+nx;
+ try{navigator.vibrate&&navigator.vibrate(hit?[250]:[70,70,70])}catch(e){}
+ say(sp);drawT()}
+function say(t){if(!ST.ui.say)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fi-FI';u.onstart=()=>{speaking=true;setTimeout(()=>{speaking=false},9000)};u.onend=u.onerror=()=>{speaking=false;muteUntil=performance.now()+600};speechSynthesis.speak(u)}catch(e){speaking=false}}
 function drawT(){
- const c=$('tc'),g=c.getContext('2d'),S=c.width,Dm=V('dist'),R=V('td')/2000/Dm*1000;
- let m=R*2.2;for(const s of ser)m=Math.max(m,Math.hypot(s.dz,s.dy)*1000/Dm*1.2);const k=(S/2-20)/m,cx=S/2;
+ const c=$('tc'),g=c.getContext('2d'),S=c.width,Dm=V('dist'),R=V('td')/2000/Dm*1000,cur=ser.filter(s=>s.dm===Dm);
+ let m=R*2.2;for(const s of cur)m=Math.max(m,Math.hypot(s.zm,s.ym)*1.2);const k=(S/2-20)/m,cx=S/2;
  g.clearRect(0,0,S,S);g.fillStyle=css('--line');g.beginPath();g.arc(cx,cx,R*k,0,7);g.fill();
  g.strokeStyle=css('--mut');g.lineWidth=1;g.beginPath();g.moveTo(0,cx);g.lineTo(S,cx);g.moveTo(cx,0);g.lineTo(cx,S);g.stroke();
  g.font='bold 22px sans-serif';g.textAlign='center';
- ser.forEach((s,i)=>{const x=cx+s.dz/Dm*1000*k,y=cx-s.dy/Dm*1000*k;g.fillStyle=s.hit?css('--acc'):css('--bad');g.beginPath();g.arc(x,y,i==ser.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
+ cur.forEach((s,i)=>{const x=cx+s.zm*k,y=cx-s.ym*k;g.fillStyle=s.hit?css('--acc'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
 // ===== Käyttöliittymä =====
 function dope(){
  const P=params(),th0=solveEl(P,V('zd')),step=+$('dstep').value||100,ck=ckMil(),Dm=V('dist');
@@ -420,7 +445,7 @@ $('dstep').value=ST.ui.step;$('dstep').onchange=()=>{ST.ui.step=+$('dstep').valu
 $('rst').onclick=()=>{if(confirm('Poistetaanko kaikki tallennetut tiedot?')){try{localStorage.removeItem('kh2')}catch(e){}location.reload()}};
 const OB=[['Tervetuloa','Sovellus mittaa aseen suunnan puhelimen antureilla ja laskee, minne luoti osuisi. Mukana on esimerkkiprofiili, jolla pääset heti alkuun. Vaihda omat arvot Profiili-välilehdellä.'],
 ['Puhelimen kiinnitys','Ase on aina tyhjä ja lipas pois. Kiinnitä puhelin jäykästi aseeseen: näyttö ylöspäin ja yläreuna piipun suuntaan. Muut asennot valitaan Lisää-välilehdeltä.'],
-['Nollaus','Säädä oikea kiikari nollaukseensa. Tähtää merkkiin, joka on kiikarin korkeudella (esim. 10 m päässä). Paina Käynnistä ja sitten Nollaa.'],
+['Nollaus','Säädä oikea kiikari nollaukseensa ja pidä ase vaakasuorassa (vesivaaka). Tähtää pieneen, tarkkaan merkkiin: mitä kauempana, sitä tarkempi (25–50 m hyvä, 10 m riittää). Säädä kiikarin parallaksi merkin matkalle. Paina Käynnistä ja sitten Nollaa. Merkin matka ei vaikuta laskentaan.'],
 ['Laukaisu','Paina Mikrofoni päälle ja säädä herkkyys niin, että napsahdus ylittää palkin keskikohdan. Ilman mikrofonia voit kokeilla Laukaise (testi) -painiketta. Korjaa seuraavaa laukausta näytetyn klikkimäärän mukaan.']];
 let obi=0;
 function obShow(){$('ob').hidden=false;$('obt').textContent=(obi+1)+'/'+OB.length+' · '+OB[obi][0];$('obx').textContent=OB[obi][1];$('obn').textContent=obi==OB.length-1?'Valmis':'Seuraava'}
@@ -430,8 +455,25 @@ $('obb').onclick=()=>{obi=0;obShow();show('train')};
 $('mic').onclick=micToggle;$('tst').onclick=()=>fire(performance.now());
 $('nw').onclick=()=>{newWind();$('rd').textContent='Uusi tuuli arvottu.'};
 $('cl').onclick=()=>{ser=[];drawT();$('rs').textContent='';$('rd').textContent=''};
+$('smb').onclick=()=>{document.body.classList.add('sm');window.scrollTo(0,0)};
+$('smx').onclick=()=>document.body.classList.remove('sm');
+$('rep').onclick=()=>{if(lastFz)frozen={...lastFz,until:performance.now()+6000}};
+$('sayc').checked=ST.ui.say;$('sayc').onchange=()=>{ST.ui.say=$('sayc').checked;save()};
+function stats(L){
+ if(!L.length)return '<p class="m">Ei laukauksia.</p>';
+ const n=L.length,h=L.filter(s=>s.hit).length,mx=L.reduce((a,s)=>a+s.zm,0)/n,my=L.reduce((a,s)=>a+s.ym,0)/n,wb=L.reduce((a,s)=>a+s.wob,0)/n,ck=ckMil();
+ let es=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)es=Math.max(es,Math.hypot(L[i].zm-L[j].zm,L[i].ym-L[j].ym));
+ const ce=Math.round(-my/ck),cw=Math.round(-mx/ck);
+ return '<table><tr><td>Laukauksia</td><td>'+n+'</td></tr><tr><td>Osumia</td><td>'+h+' ('+Math.round(100*h/n)+' %)</td></tr><tr><td>Keskipiste (vaaka / pysty)</td><td>'+fm(mx,2)+' / '+fm(my,2)+' mil</td></tr><tr><td>Keskipisteen korjaus</td><td>'+(ce>=0?'ylös ':'alas ')+Math.abs(ce)+', '+(cw>=0?'oik. ':'vas. ')+Math.abs(cw)+' klik</td></tr><tr><td>Ryhmän leveys (suurin väli)</td><td>'+es.toFixed(2)+' mil</td></tr><tr><td>Heilunta keskimäärin</td><td>'+wb.toFixed(2)+' mil</td></tr></table>'}
+function renderHist(){
+ $('hs1').innerHTML=stats(ser);$('hs2').innerHTML=stats(ST.hist);
+ const rows=ST.hist.slice(-30).reverse().map(s=>'<tr><td>'+new Date(s.t).toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'})+'</td><td>'+s.dm+' m</td><td>'+(s.hit?'osuma':'ohi')+'</td><td>'+fm(s.zm,2)+' / '+fm(s.ym,2)+'</td></tr>').join('');
+ $('hs3').innerHTML=rows?'<table><tr><th>Aika</th><th>Matka</th><th>Tulos</th><th>mil (v / p)</th></tr>'+rows+'</table>':''}
+$('hcsv').onclick=()=>{const h='aika,profiili,matka_m,osuma,pysty_cm,vaaka_cm,pysty_mil,vaaka_mil,heilunta_mil,tuuli_ms,tuuli_klo,elev_klik,tuuli_klik\n',b=new Blob([h+ST.hist.map(s=>[new Date(s.t).toISOString(),'"'+String(s.pn).replace(/"/g,'""')+'"',s.dm,s.hit?1:0,(s.dy*100).toFixed(1),(s.dz*100).toFixed(1),s.ym.toFixed(3),s.zm.toFixed(3),s.wob.toFixed(3),s.ws.toFixed(1),s.wc,s.ev,s.wv].join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='laukaukset.csv';a.click()};
+$('hclr').onclick=()=>{if(confirm('Poistetaanko laukaushistoria?')){ST.hist=[];ser=[];save();renderHist();drawT()}};
 renderProf();renderWx();$('sf').innerHTML=formHTML(SF,ST.ses,'s_');newWind();drawT();updateHints();
 if(!ST.ui.seen)obShow();
 
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 draw();
 </script></body></html>
