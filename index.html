@@ -108,7 +108,10 @@ body.sm #rs{font-size:34px}body.sm #rd{font-size:17px;color:var(--fg)}
   <label style="margin-top:8px">Näytön pehmennys (vain näkymä)</label><select id="sm"><option value="0">Ei</option><option value="1">Kevyt</option><option value="2">Vahva</option></select>
   <label style="margin-top:8px">Aseen eteen (piippulinja)</label><select id="fw"></select>
   <label style="margin-top:8px">Aseen ylä (kiikarin puoli)</label><select id="up"></select>
-  <p class="m">Oletus: puhelin näyttö ylöspäin, yläreuna piipun suuntaan.</p></div>
+  <p class="m">Oletus: puhelin näyttö ylöspäin, yläreuna piipun suuntaan.</p>
+  <label style="margin-top:8px">Gyro ja yaw-drift (Oma fuusio)</label>
+  <div class="row"><button id="gbc" class="s">Kalibroi gyro (5 s)</button><button id="dtb" class="s">Drift-testi (30 s)</button></div>
+  <p class="m" id="gbm">Kalibroi pitämällä ase täysin paikallaan (tuella tai säkillä), samassa asennossa kuin ammut. Drift-testissä ase on paikallaan 30 s ja sovellus kertoo vaakasuunnan ajautumisen.</p></div>
  <h2>Muu</h2>
  <div class="card"><label><input id="hintc" type="checkbox"> Näytä dope-vihje harjoitusnäkymässä</label><label style="margin-top:6px"><input id="sayc" type="checkbox"> Puhu tulos ääneen</label>
   <div class="row"><button id="obb" class="s">Opastus</button><button id="rst" class="s">Nollaa kaikki tiedot</button></div></div>
@@ -223,12 +226,73 @@ function initQ(a){
  n=n.map(v=>v/l);const e=cross(n,u);
  q=m2q([e,n,u]);qInit=true}
 function fuse(w,dt,a){
+ w=[w[0]-GB.b[0],w[1]-GB.b[1],w[2]-GB.b[2]];
  if(a){const up=q2m(q)[2],m=Math.hypot(a[0],a[1],a[2]),ua=[a[0]/m,a[1]/m,a[2]/m],er=cross(ua,up),dv=Math.abs(m-9.81),kp=dv<.6?1.2:dv<1.5?.3:0;
   w=[w[0]+kp*er[0],w[1]+kp*er[1],w[2]+kp*er[2]]}
  const wn=Math.hypot(w[0],w[1],w[2]),th=wn*dt;let dq=[1,0,0,0];
  if(th>1e-9){const sn=Math.sin(th/2)/wn;dq=[Math.cos(th/2),w[0]*sn,w[1]*sn,w[2]*sn]}
  q=qmul(q,dq);const nn=Math.hypot(q[0],q[1],q[2],q[3]);q=q.map(v=>v/nn)}
 
+// ===== Gyron bias ja yaw-drift =====
+// Gyron nollavirhe (bias) integroituu vaakasuunnan (yaw) ajautumiseksi, eikä kiihtyvyysanturi näe yawta.
+// Bias mitataan levossa (5 s kalibrointi) ja päivitetään jatkuvasti, kun ase on selvästi paikallaan (ZUPT).
+// Levossa mitattu arvo sisältää myös Maan pyörimisen (n. 3-4 mil/min Suomen leveysasteilla), kun kalibroidaan ampuma-asennossa.
+const GCAL=5000;
+const GB={b:[0,0,0],ok:false,t:0,corr:0,raw:0,sd0:.0015,se:.0001,rate:null,win:[],cal:null,cand:null,boot:false};
+let zT=0,DT=null;
+function gbStat(A){const n=A.length,m=[0,0,0,0,0,0],v=[0,0,0,0,0,0];
+ for(const s of A)for(let i=0;i<6;i++)m[i]+=s[i+1];
+ for(let i=0;i<6;i++)m[i]/=n;
+ for(const s of A)for(let i=0;i<6;i++)v[i]+=(s[i+1]-m[i])**2;
+ return{n,m,sd:Math.sqrt((v[0]+v[1]+v[2])/n),asd:Math.sqrt((v[3]+v[4]+v[5])/n),g:Math.hypot(m[3],m[4],m[5])}}
+function gbSet(m,al,sd,n){
+ const d=Math.hypot(m[0]-GB.b[0],m[1]-GB.b[1],m[2]-GB.b[2]);
+ if(!GB.ok){GB.raw=d*MIL;GB.sd0=Math.max(sd,.0003)}else GB.sd0=.7*GB.sd0+.3*Math.max(sd,.0003);
+ GB.corr=d*MIL;GB.b=GB.b.map((v,i)=>v+al*(m[i]-v));if(al>=1&&n)GB.se=Math.max(sd,.0003)/Math.sqrt(n);GB.ok=true;GB.t=performance.now()}
+function gbDone(ok,msg){
+ GB.cal=null;$('gbm').textContent=msg;
+ if(GB.boot){GB.boot=false;$('st').textContent=ok?'Käynnissä. Gyro kalibroitu. Tähtää merkkiin ja paina Nollaa.':'Käynnissä, mutta gyron kalibrointi epäonnistui (ase liikkui). Aseta ase tuelle ja paina Lisää → Kalibroi gyro.'}}
+function gbPush(t,w,a){
+ if(!a)return;
+ const W=GB.win;W.push([t,w[0],w[1],w[2],a[0],a[1],a[2]]);
+ while(t-W[0][0]>GCAL+700)W.shift();
+ if(GB.cal){
+  if(t-GB.cal.t0<GCAL)return;
+  const A=W.filter(s=>s[0]>=GB.cal.t0),S=gbStat(A);
+  if(A.length<30||S.sd>.004||S.asd>.15||Math.abs(S.g-9.81)>.8){gbDone(false,'Kalibrointi epäonnistui: ase liikkui. Aseta ase tuelle ja yritä uudelleen.');return}
+  const first=!GB.ok;gbSet(S.m,1,S.sd,A.length);
+  gbDone(true,'Gyro kalibroitu.'+(first?' Mitattu bias '+GB.raw.toFixed(2)+' mil/s (≈ '+(GB.raw*60).toFixed(1)+' mil/min), joka olisi ajanut vaakaa tähän tahtiin.':' Korjaus edelliseen '+GB.corr.toFixed(2)+' mil/s.'));
+  GB.cand=null;W.length=0;return}
+ const A=W.filter(s=>t-s[0]<=1500);
+ if(A.length<30||t-A[0][0]<1350)return;
+ const S=gbStat(A),lim=GB.ok?Math.max(.0012,1.6*GB.sd0):.0025;
+ const off=GB.ok?Math.hypot(S.m[0]-GB.b[0],S.m[1]-GB.b[1],S.m[2]-GB.b[2]):Math.hypot(S.m[0],S.m[1],S.m[2]);
+ if(S.sd>lim||S.asd>.06||Math.abs(S.g-9.81)>.5||off>(GB.ok?.0015:.001))return;
+ if(GB.ok&&off<=.0005){gbSet(S.m,.25,S.sd);GB.cand=null;W.length=0;return}
+ const c=GB.cand;
+ if(c&&Math.hypot(S.m[0]-c.m[0],S.m[1]-c.m[1],S.m[2]-c.m[2])<.0003){
+  c.n++;c.s=c.s.map((v,i)=>v+S.m[i]);c.m=c.s.map(v=>v/c.n);c.sd=Math.max(c.sd,S.sd);
+  if(c.n>=(GB.ok?3:2)){gbSet(c.m,1,c.sd,c.n*A.length);GB.cand=null}}
+ else GB.cand={m:S.m,s:S.m.slice(),n:1,sd:S.sd};
+ W.length=0}
+function gbStatus(){
+ if(mode!=='own'||!running)return'';
+ if(GB.cal)return' · gyro kalibroituu…';
+ if(!GB.ok)return' · gyro EI kalibroitu';
+ return' · gyro kal. '+Math.round((performance.now()-GB.t)/1000)+' s sitten'}
+function gyWarn(){
+ if(mode!=='own'||!running)return'';
+ if(!GB.ok)return'<br>⚠ Gyro ei kalibroitu: vaaka-asema voi olla pielessä.';
+ if(!zT)return'';
+ const age=(performance.now()-zT)/1000,ex=GB.rate!=null?GB.rate*age/60:GB.se*MIL*age;
+ return'<br>'+(ex>=1?'⚠ ':'')+'Vaaka-aseman arvioitu ajautuma nollauksesta ('+Math.round(age)+' s): ±'+ex.toFixed(1)+' mil'+(ex>=1?'. Nollaa uudelleen ja ammu pian.':'.')}
+function dtTick(now){
+ if(!DT)return;
+ const e=(now-DT.t0)/1000;
+ DT.pm=Math.max(DT.pm,Math.abs(cur.p-DT.p0)*MIL,Math.abs(wrap(cur.r-DT.r0))*MIL);
+ if(e<30){$('gbm').textContent='Drift-testi: '+Math.ceil(30-e)+' s jäljellä. Älä liikuta asetta.';return}
+ const d=DT,dy=wrap(cur.y-d.y0)*MIL;DT=null;
+ if(d.pm<=1)GB.rate=Math.abs(dy/e*60);$('gbm').textContent='Yaw-drift '+f2(dy)+' mil / '+Math.round(e)+' s (≈ '+f2(dy/e*60)+' mil/min), lähde: '+srcName+'.'+(d.pm>1?' Ase liikkui testin aikana (pitch/roll '+d.pm.toFixed(1)+' mil), tulos on epäluotettava.':'')}
 const OE={x:0,y:0,dx:0,dy:0,t:0};
 function oe(x,y,t){
  const o={1:[3,.03],2:[1,.02]}[$('sm').value];
@@ -241,9 +305,10 @@ function oe(x,y,t){
 function onG(){
  if(mode!=='own'||!qInit||!gyS)return;
  const t=gyS.timestamp,dt=gyT?(t-gyT)/1000:0;gyT=t;
- if(dt<=0||dt>.1)return;
+ if(dt<=0||dt>.1){GB.win.length=0;return}
+ gbPush(performance.now(),[gyS.x,gyS.y,gyS.z],acV);
  fuse([gyS.x,gyS.y,gyS.z],dt,acV);apply(q2m(q))}
-function stopSrc(){for(const x of[sens,gyS,acS]){try{x&&x.stop()}catch(e){}}sens=gyS=acS=null;qInit=false;acV=null;gyT=0}
+function stopSrc(){for(const x of[sens,gyS,acS]){try{x&&x.stop()}catch(e){}}sens=gyS=acS=null;qInit=false;acV=null;gyT=0;GB.win.length=0;GB.cal=null;GB.cand=null}
 async function startSrc(){
  stopSrc();mode=$('src').value;srcName='deviceorientation';
  if(mode==='do')return;
@@ -264,13 +329,14 @@ async function startSrc(){
   }
  }catch(e){mode='do'}
 }
-$('z').onclick=()=>{z0={...cur};trail=[];OE.t=0};
+$('z').onclick=()=>{z0={...cur};zT=performance.now();trail=[];OE.t=0;if(mode==='own'&&running&&!GB.ok&&!GB.cal)$('st').textContent='Huom: gyro ei ole kalibroitu, vaaka-asema voi ajautua. Paina Lisää → Kalibroi gyro.'};
 $('go').onclick=async()=>{
  try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('st').textContent='Lupa evätty.';return}}}catch(e){$('st').textContent='Lupapyyntö epäonnistui.';return}
  window.removeEventListener('deviceorientation',onO);window.addEventListener('deviceorientation',onO);
  running=true;await startSrc();
  try{navigator.wakeLock&&navigator.wakeLock.request('screen')}catch(e){}
- $('st').textContent='Käynnissä. Aseta ase tähtäysasentoon ja paina Nollaa.';
+ if(mode==='own'){GB.cal={t0:performance.now()};GB.boot=true;$('st').textContent='Kalibroidaan gyroa 5 s: pidä ase täysin paikallaan (tuella tai säkillä).'}
+ else $('st').textContent='Käynnissä. Aseta ase tähtäysasentoon ja paina Nollaa.';
  setTimeout(()=>{if(!R)$('st').textContent='Ei anturidataa. Avaa sivu Chromessa suojatulla (https) yhteydellä ja salli liiketunnistimet.'},2500);
 };
 const f2=x=>(x>=0?'+':'')+x.toFixed(2);
@@ -287,7 +353,7 @@ function draw(){
  const w=trail.filter(p=>now-p[0]<1000);let wob=0;
  if(w.length>3){const mx=w.reduce((a,p)=>a+p[3],0)/w.length,my=w.reduce((a,p)=>a+p[4],0)/w.length;wob=Math.sqrt(w.reduce((a,p)=>a+(p[3]-mx)**2+(p[4]-my)**2,0)/w.length)}
  const ms=steps.filter(x=>now-x[0]<3000);steps=ms;const mn=ms.length?Math.min(...ms.map(x=>x[1])):0;
- $('ex').textContent='Lähde: '+srcName+' · pienin askel '+mn.toFixed(2)+' mil · Abs. pitch '+(cur.p/D).toFixed(2)+'° · heilunta (1 s RMS) '+wob.toFixed(2)+' mil · '+Math.round(hz)+' Hz';
+ $('ex').textContent='Lähde: '+srcName+' · pienin askel '+mn.toFixed(2)+' mil · Abs. pitch '+(cur.p/D).toFixed(2)+'° · heilunta (1 s RMS) '+wob.toFixed(2)+' mil · '+Math.round(hz)+' Hz'+gbStatus();dtTick(now);
  // reticle
  let c=$('rc'),g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H/2,S=+$('sc').value,k=(W/2-16)/S;
  g.clearRect(0,0,W,H);g.strokeStyle=line;g.lineWidth=2;
@@ -390,7 +456,7 @@ function fire(ts){
  if(ST.ses.tm==='rng'){const a=Math.max(100,V('dmin')),b=Math.max(a,V('dmax'));let d=Dm;for(let k=0;k<30&&d===Dm;k++)d=Math.round((a+Math.random()*(b-a))/50)*50;ST.ses.dist=d;updateHints();nx='<br>Seuraava matka: '+d+' m';sp+=' Seuraava matka '+d+' metriä.'}
  save();
  $('rs').textContent=(hit?'OSUMA':'OHI')+' · '+ser.length+'. laukaus';$('rs').style.color=hit?'var(--acc)':'var(--bad)';
- $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br><b>Korjaus: '+corr+'</b><br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd+nx;
+ $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br><b>Korjaus: '+corr+'</b><br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd+nx+gyWarn();
  try{navigator.vibrate&&navigator.vibrate(hit?[250]:[70,70,70])}catch(e){}
  say(sp);drawT()}
 function say(t){if(!ST.ui.say)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fi-FI';u.onstart=()=>{speaking=true;setTimeout(()=>{speaking=false},9000)};u.onend=u.onerror=()=>{speaking=false;muteUntil=performance.now()+600};speechSynthesis.speak(u)}catch(e){speaking=false}}
@@ -445,13 +511,19 @@ $('dstep').value=ST.ui.step;$('dstep').onchange=()=>{ST.ui.step=+$('dstep').valu
 $('rst').onclick=()=>{if(confirm('Poistetaanko kaikki tallennetut tiedot?')){try{localStorage.removeItem('kh2')}catch(e){}location.reload()}};
 const OB=[['Tervetuloa','Sovellus mittaa aseen suunnan puhelimen antureilla ja laskee, minne luoti osuisi. Mukana on esimerkkiprofiili, jolla pääset heti alkuun. Vaihda omat arvot Profiili-välilehdellä.'],
 ['Puhelimen kiinnitys','Ase on aina tyhjä ja lipas pois. Kiinnitä puhelin jäykästi aseeseen: näyttö ylöspäin ja yläreuna piipun suuntaan. Muut asennot valitaan Lisää-välilehdeltä.'],
-['Nollaus','Säädä oikea kiikari nollaukseensa ja pidä ase vaakasuorassa (vesivaaka). Tähtää pieneen, tarkkaan merkkiin: mitä kauempana, sitä tarkempi (25–50 m hyvä, 10 m riittää). Säädä kiikarin parallaksi merkin matkalle. Paina Käynnistä ja sitten Nollaa. Merkin matka ei vaikuta laskentaan.'],
+['Nollaus','Säädä oikea kiikari nollaukseensa ja pidä ase vaakasuorassa (vesivaaka). Tähtää pieneen, tarkkaan merkkiin: mitä kauempana, sitä tarkempi (25–50 m hyvä, 10 m riittää). Säädä kiikarin parallaksi merkin matkalle. Paina Käynnistä: sovellus kalibroi gyron ensin 5 sekunnin aikana, joten pidä ase täysin paikallaan (tuella tai säkillä). Paina sitten Nollaa tähtäysasennossa ja ammu pian: vaaka-asema ajautuu hitaasti.'],
 ['Laukaisu','Paina Mikrofoni päälle ja säädä herkkyys niin, että napsahdus ylittää palkin keskikohdan. Ilman mikrofonia voit kokeilla Laukaise (testi) -painiketta. Korjaa seuraavaa laukausta näytetyn klikkimäärän mukaan.']];
 let obi=0;
 function obShow(){$('ob').hidden=false;$('obt').textContent=(obi+1)+'/'+OB.length+' · '+OB[obi][0];$('obx').textContent=OB[obi][1];$('obn').textContent=obi==OB.length-1?'Valmis':'Seuraava'}
 $('obn').onclick=()=>{if(obi>=OB.length-1){$('ob').hidden=true;ST.ui.seen=true;save()}else{obi++;obShow()}};
 $('obs').onclick=()=>{$('ob').hidden=true;ST.ui.seen=true;save()};
 $('obb').onclick=()=>{obi=0;obShow();show('train')};
+$('gbc').onclick=()=>{
+ if(!running||mode!=='own'){$('gbm').textContent='Kalibrointi toimii, kun Käynnistä on painettu ja anturilähteenä on Oma fuusio.';return}
+ GB.cal={t0:performance.now()};GB.boot=false;$('gbm').textContent='Kalibroidaan '+GCAL/1000+' s: pidä ase täysin paikallaan.'};
+$('dtb').onclick=()=>{
+ if(!running||!R){$('gbm').textContent='Paina ensin Käynnistä.';return}
+ DT={t0:performance.now(),y0:cur.y,p0:cur.p,r0:cur.r,pm:0};$('gbm').textContent='Drift-testi: 30 s. Älä liikuta asetta.'};
 $('mic').onclick=micToggle;$('tst').onclick=()=>fire(performance.now());
 $('nw').onclick=()=>{newWind();$('rd').textContent='Uusi tuuli arvottu.'};
 $('cl').onclick=()=>{ser=[];drawT();$('rs').textContent='';$('rd').textContent=''};
