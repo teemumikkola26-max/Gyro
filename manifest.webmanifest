@@ -1,7 +1,7 @@
 {
  "name": "Kuivaharjoittelu",
  "short_name": "Kuivaharj.",
- "start_url": "./kuivaharjoittelu.html",
+ "start_url": "./index.html",
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",

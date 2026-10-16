@@ -50,12 +50,17 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
 #lk_qr{background:#fff;border-radius:12px;image-rendering:pixelated;margin:10px 0}
 #ob{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
 #ob>div{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%}
+.stg{display:grid;gap:0}.stg .gi{margin:4px 0}
+#gc{width:100%;aspect-ratio:1/1;border-radius:var(--r);background:#000;touch-action:none}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:6px 0}.hud div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 2px}.hud b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.hud span{font-size:11px;color:var(--mut);text-transform:uppercase}
+#gmsg{min-height:44px;font-size:16px;font-weight:600}
 </style></head><body>
 <header><div id="hdt">Harjoittele</div></header>
 <main>
 
 <section id="t_train">
  <div id="p_setup">
+  <div class="card"><div class="lbl">Pelitila</div><div class="stg" id="stg"></div></div>
   <div class="card"><div class="lbl">Varuste</div><select id="su_psel"></select><p class="m" id="su_psum"></p><button class="lnk" id="su_edit">Muokkaa varustetta</button></div>
   <div class="card"><div class="lbl">Olosuhteet</div><p id="su_wx" style="font-size:18px;font-weight:600;margin-top:0"></p>
    <div class="row"><button id="wxb" class="s">Hae sää</button><button id="wxstd" class="s">Vakioilmakehä</button></div><p class="m" id="wxs"></p>
@@ -103,6 +108,16 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
  <div id="p_sum" hidden><h2>Harjoitus valmis</h2><div class="card" id="sum1"></div>
   <button id="newb" class="big">Uusi harjoitus</button><button id="toRes" class="big s">Katso tulokset</button></div>
 
+ <div id="p_game" hidden>
+  <div class="hud"><div><b id="g_sc">0</b><span>Pisteet</span></div><div><b id="g_tm">–</b><span>Aika</span></div><div><b id="g_sh">0</b><span>Laukaukset</span></div><div><b id="g_st">×1.0</b><span>Putki</span></div></div>
+  <canvas id="gc" width="720" height="720"></canvas>
+  <div class="card"><div id="gmsg"></div></div>
+  <div class="card"><div class="sp"><span>Elevaatio</span><button class="s" data-a="ev:-10">−10</button><button class="s" data-a="ev:-1">−1</button><b id="g_ev"></b><button class="s" data-a="ev:1">+1</button><button class="s" data-a="ev:10">+10</button></div><div class="sp"><span>Tuuli</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="g_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div><div class="sp"><span>Zoom</span><button class="s" id="gz1">−</button><b id="g_zm"></b><button class="s" id="gz2">+</button></div></div>
+  <details class="card" id="gdopeb" open><summary>Dope-kortti</summary><div id="gdope"></div></details>
+  <div class="row"><button id="gz" class="s">Nollaa uudelleen</button><button id="gtst" class="s">Testilaukaus</button></div>
+  <button id="gend" class="big s">Lopeta peli</button>
+ </div>
+ <div id="p_gsum" hidden><h2 id="gs_t"></h2><div class="card" id="gs_b"></div><button id="gagain" class="big">Pelaa uudelleen</button><button id="gmenu" class="big s">Valikkoon</button></div>
  <div id="p_remote" hidden>
   <div class="chips"><span class="chip" id="r_link"></span><span class="chip" id="r_sen"></span><span class="chip" id="r_gy"></span><span class="chip" id="r_mic"></span><span class="chip" id="r_z"></span></div>
   <p class="m" id="r_ph"></p>
@@ -171,7 +186,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
  <h3>Ohje ja tiedot</h3><div class="card"><button id="obb" class="s" style="width:100%">Näytä opastus</button>
   <details style="margin-top:10px"><summary>Turvallisuus ja rajoitukset</summary><p class="m">Sovellus on harjoitusväline. Ase on aina tyhjä ja lipas pois. Laskenta perustuu G7-malliin, sääsyötteisiin ja puhelimen antureihin, eikä se korvaa oikeaa nollausta tai ballistiikkalaskuria. Coriolisia ei ole mukana.</p></details>
   <details><summary>Tietosuoja</summary><p class="m">Kaikki tiedot tallentuvat vain tähän laitteeseen. Mikrofonia käytetään vain napsahduksen havaitsemiseen, ääntä ei tallenneta. Sijaintia ja verkkoa käytetään vain, kun haet sään.</p></details>
-  <button id="rst" class="s warn" style="width:100%;margin-top:10px">Poista kaikki tiedot</button><p class="m">Versio 0.9 (kehitysversio)</p></div>
+  <button id="rst" class="s warn" style="width:100%;margin-top:10px">Poista kaikki tiedot</button><p class="m">Versio 1.0 (peli)</p></div>
 </section>
 </main>
 
@@ -396,6 +411,7 @@ function css(v){return getComputedStyle(document.documentElement).getPropertyVal
 
 function draw(){
  if(phase==='remote')drawRemote();
+ if(phase==='game')drawGame();
  const now=performance.now();
  if(now-tH>1000){hz=n*1000/(now-tH);n=0;tH=now}
  const dp=(cur.p-z0.p),dy=wrap(cur.y-z0.y),dr=wrap(cur.r-z0.r);
@@ -493,6 +509,7 @@ async function micToggle(){
 let ctx=null;
 const fm=(x,d=1)=>(x>=0?'+':'')+x.toFixed(d);
 function fire(ts){
+ if(phase==='game'){gameFire(ts);return}if(phase==='gsum')return;
  const h=trail;if(h.length<3){$('ms').textContent='Ei asentodataa: paina Käynnistä.';return}
  const i=h.findIndex(p=>p[0]>=ts),a=i<=0?h[0]:h[i-1],b=i<0?h[h.length-1]:h[i];
  const u=b[0]>a[0]?Math.max(0,Math.min(1,(ts-a[0])/(b[0]-a[0]))):0,L=j=>a[j]+(b[j]-a[j])*u,x=L(3),y=L(4),rl=L(5);
@@ -552,13 +569,13 @@ const psum=p=>p.mv+' m/s · G7 '+p.bc+' · '+p.ck+({moa:' MOA',mm:' mm/100 m'}[p
 function show(t){for(const id of['train','gear','res','set'])$('t_'+id).hidden=id!==t;
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('hdt').textContent=TITLES[t];if(t==='gear')renderGear();if(t==='res')renderRes();window.scrollTo(0,0)}
-function setPhase(p){phase=p;for(const x of['setup','prep','shoot','sum','remote'])$('p_'+x).hidden=x!==p;
- document.body.classList.toggle('run',p==='prep'||p==='shoot'||p==='remote');document.body.classList.toggle('remote',p==='remote');lnkState();if(p==='setup')renderSetup();window.scrollTo(0,0)}
+function setPhase(p){phase=p;for(const x of['setup','prep','shoot','sum','remote','game','gsum'])$('p_'+x).hidden=x!==p;
+ document.body.classList.toggle('run',p==='prep'||p==='shoot'||p==='remote'||p==='game');document.body.classList.toggle('remote',p==='remote');lnkState();if(p==='setup')renderSetup();window.scrollTo(0,0)}
 function condForms(){
  $('sf1').innerHTML=formHTML(SF1.filter(f=>(f.id!=='dmin'&&f.id!=='dmax')||ST.ses.tm==='rng'),ST.ses,'a_');
  $('sf2').innerHTML=formHTML(SF2.filter(f=>f.id==='wm'||ST.ses.wm==='man'),ST.ses,'b_');
  $('sf3').innerHTML=formHTML(SF3,ST.ses,'c_')}
-function renderSetup(){
+function renderSetup(){renderStages();
  $('su_psel').innerHTML=ST.profiles.map((p,i)=>`<option value="${i}"${i==ST.active?' selected':''}>${esc(p.name)}</option>`).join('');
  $('wf').innerHTML=formHTML(WF,ST.wx,'w_');condForms();updateHints()}
 function updateHints(){
@@ -605,7 +622,7 @@ function updateWiz(){
  if(stepI===1)ok=calSkip||(mode==='own'?GB.ok:running);
  if(stepI===2)ok=zT>0;
  $('pn').disabled=!ok}
-async function quickStart(){if(!running)await $('go').onclick();startShoot()}
+async function quickStart(){if(!running)await $('go').onclick();startAny()}
 function startShoot(){ser=[];frozen=null;drawT();newWind();lkSend({t:'reset'});setPhase('shoot');
  $('rs').textContent='Valmiina';$('rs').style.color='';$('cE').textContent='–';$('cW').textContent='–';$('rd').textContent='';updateHints()}
 function endSession(){if(micOn)stopMic();$('sum1').innerHTML=stats(ser);setPhase('sum')}
@@ -645,9 +662,9 @@ $('su_edit').onclick=()=>show('gear');
 $('startb').onclick=()=>{calSkip=false;micSkip=false;zT=0;setPhase('prep');showStep(0)};
 $('skipall').onclick=quickStart;
 $('skipcal').onclick=()=>{calSkip=true;updateWiz()};
-$('skipmic').onclick=()=>startShoot();
+$('skipmic').onclick=()=>startAny();
 $('pb').onclick=()=>{if(stepI===0)setPhase('setup');else showStep(stepI-1)};
-$('pn').onclick=()=>{if(stepI<3)showStep(stepI+1);else startShoot()};
+$('pn').onclick=()=>{if(stepI<3)showStep(stepI+1);else startAny()};
 $('z2').onclick=()=>$('z').onclick();
 $('endb').onclick=endSession;
 $('newb').onclick=()=>setPhase('setup');
@@ -824,6 +841,137 @@ $('lk_sens').onclick=lkStartSens;$('lk_disp').onclick=lkStartDisp;$('lk_end').on
 $('lk_scan').onclick=()=>scanQR(lkAccept);
 $('lk_copy').onclick=async()=>{try{await navigator.clipboard.writeText($('lk_out').value);lkStat('Koodi kopioitu.')}catch(e){$('lk_out').select()}};
 $('lk_use').onclick=async()=>{try{await lkAccept($('lk_in').value)}catch(e){lkStat('Koodi ei kelvannut: '+e.message)}};
+
+// ===== PELI: realistinen kiikarinäkymä, tuuliliput, laukauksen lentoaika, äänen viive =====
+const STAGES=[
+{id:'warm',n:'Lämmittely',ds:'3 levyä 200–300 m, tuuli näytetään numerona',T:[[200,400,-6,.4],[250,400,0,0],[300,400,6,-.4]],sh:8,time:0,wmax:2,sw:true},
+{id:'steel',n:'Teräskenttä',ds:'5 levyä 200–600 m, 120 s',T:[[200,400,-12,.4],[300,350,-5,-.6],[400,300,3,.8],[500,300,10,-.3],[600,300,0,.2]],sh:10,time:120,wmax:4},
+{id:'wind',n:'Tuulikoulu 500 m',ds:'Yksi levy, tuuli vaihtuu joka laukauksen jälkeen. Lue liput ja ruoho.',T:[[500,400,0,0]],sh:10,time:0,wmax:7,rep:true},
+{id:'long',n:'Pitkä matka',ds:'5 levyä 600–1000 m, 180 s',T:[[600,500,-8,0],[700,500,-3,.5],[800,500,4,-.4],[900,600,9,.2],[1000,700,0,-.8]],sh:10,time:180,wmax:5},
+{id:'prs',n:'Kilpa-ammunta',ds:'8 levyä 300–800 m, 150 s, 12 laukausta',T:[[300,300,-14,.6],[800,500,-9,-.5],[450,300,-3,.9],[650,400,2,-.2],[350,250,8,.3],[550,300,12,-.7],[750,500,5,.5],[400,350,-1,-.9]],sh:12,time:150,wmax:6}];
+const FL=[{d:100,x:-22},{d:350,x:19},{d:650,x:-30}];
+let G=null;
+const stageObj=()=>STAGES.find(s=>s.id===ST.ui.stage);
+const rnd=i=>{const s=Math.sin(i*127.1)*43758.5453;return s-Math.floor(s)};
+const rWind=m=>({ws:Math.round(Math.random()*m*10)/10,wd:1+Math.floor(Math.random()*12)});
+function renderStages(){const cs=ST.ui.stage||'';
+ $('stg').innerHTML=[{id:'',n:'Vapaa harjoitus',ds:'Ei peliä, pelkkä ammunta ja tulokset'},...STAGES].map(s=>`<div class="gi${cs===s.id?' on':''}" data-sg="${s.id}"><div><b>${s.n}</b><div class="m">${s.ds}${s.id&&ST.ui.best&&ST.ui.best[s.id]?' · Ennätys '+ST.ui.best[s.id]:''}</div></div><span>${cs===s.id?'Valittu':''}</span></div>`).join('');
+ $('startb').textContent=cs?'Aloita peli':'Aloita harjoitus'}
+$('stg').onclick=e=>{const g=e.target.closest('[data-sg]');if(g){ST.ui.stage=g.dataset.sg;save();renderStages()}};
+function startAny(){stageObj()?startGame():startShoot()}
+function startGame(){
+ const S=stageObj();ST.ses.ev=0;ST.ses.wv=0;
+ G={S,T:S.T.map((a,i)=>({i,d:a[0],sz:a[1],tx:a[2],ty:a[3],hit:false,sw:0,swT:0,mk:null})),shots:0,sc:0,stk:0,hits:0,t0:performance.now(),over:false,fx:[],pend:[],kt:-1e4,kx:0,ky:0,zoom:ST.ui.zoom==null?2:ST.ui.zoom,w:rWind(S.wmax),
+  gr:Array.from({length:70},(_,i)=>({x:(rnd(i)-.5)*120,y:-2.5-rnd(i+40)*16}))};
+ const P=params(),t0=solveEl(P,V('zd')),ck=ckMil();G.th0=t0;
+ G.dp=G.T.map(t=>{const el=solveEl(P,t.d),r=flight(P,el,0,0,-3,t.d,.002);return{e:Math.round((el-t0)*1000/ck),w:r?Math.round(Math.abs(r.z)/t.d*10000/ck)/10:0}});
+ $('gdope').innerHTML='<table><tr><th>Matka</th><th>Ø mm</th><th>Elev.</th><th>Tuuli*</th></tr>'+G.T.map((t,i)=>`<tr><td>${t.d} m</td><td>${t.sz}</td><td>↑ ${G.dp[i].e}</td><td>${G.dp[i].w}</td></tr>`).join('')+'</table><p class="m">*klikkiä 3 m/s täydellä sivutuulella. Elevaatio on nollauksesta (tornit alussa nollassa).</p>';
+ $('gdopeb').hidden=!ST.ui.hint;
+ G.msg=S.sw?'Tuuli '+G.w.ws.toFixed(1)+' m/s, klo '+G.w.wd+'. Käännä torneja ja ammu.':'Lue tuuli lipuista. Käännä tornit ja ammu.';
+ setPhase('game')}
+function gshot(Dm,dyM,dzM,roll,wnd){
+ const P=params(),ckm=ckMil(),U=G.th0+ST.ses.ev*ckm/1000,Rr=ST.ses.wv*ckm/1000,c=Math.cos(roll),s=Math.sin(roll),
+ el=dyM/1000+U*c-Rr*s,az=dzM/1000+Rr*c+U*s,th=(wnd.wd%12)*Math.PI/6,r=flight(P,el,az,-wnd.ws*Math.cos(th),-wnd.ws*Math.sin(th),Dm);
+ if(!r)return null;const sg=V('sg'),sd=sg>0?1.25*(sg+1.2)*Math.pow(r.t,1.83)*.0254:0;
+ return{dy:r.y-P.h*c,dz:r.z+sd-P.h*s,t:r.t,v:r.v}}
+const kl=n=>n===1?'1 klikki':n+' klikkiä';
+function snd(k){if(ST.ui.snd==='off')return;
+ try{unlockAudio();const a=actx,t=a.currentTime,g=a.createGain();g.connect(a.destination);
+  if(k==='p'){[[1500,.5],[2310,.3],[3400,.15]].forEach(([fr,v])=>{const o=a.createOscillator(),e=a.createGain();o.frequency.value=fr;e.gain.setValueAtTime(v,t);e.gain.exponentialRampToValueAtTime(.001,t+.9);o.connect(e);e.connect(g);o.start(t);o.stop(t+1)})}
+  else{const n=k==='c'?.25:.18,b=a.createBuffer(1,a.sampleRate*n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(a.sampleRate*(k==='c'?.03:.05)));
+   const s=a.createBufferSource(),f=a.createBiquadFilter();s.buffer=b;f.type='lowpass';f.frequency.value=k==='c'?2500:500;s.connect(f);f.connect(g);g.gain.value=k==='c'?.5:.8;s.start(t)}
+  muteUntil=Math.max(muteUntil,performance.now()+1000)}catch(e){}}
+function gameFire(ts){
+ if(!G||G.over)return;const h=trail;if(h.length<3)return;const now=performance.now();
+ const i=h.findIndex(p=>p[0]>=ts),a=i<=0?h[0]:h[i-1],b=i<0?h[h.length-1]:h[i],u=b[0]>a[0]?Math.max(0,Math.min(1,(ts-a[0])/(b[0]-a[0]))):0,Lf=j=>a[j]+(b[j]-a[j])*u,x=Lf(3),y=Lf(4),rl=Lf(5);
+ const pre=h.filter(p=>p[0]>=ts-500&&p[0]<=ts);let wob=0;
+ if(pre.length>2){const mx=pre.reduce((s,p)=>s+p[3],0)/pre.length,my=pre.reduce((s,p)=>s+p[4],0)/pre.length;wob=Math.sqrt(pre.reduce((s,p)=>s+(p[3]-mx)**2+(p[4]-my)**2,0)/pre.length)}
+ G.shots++;const wnd={ws:G.w.ws*(1+.25*(Math.random()+Math.random()+Math.random()-1.5)),wd:G.w.wd};
+ const open=G.T.filter(t=>!t.hit).sort((p,q)=>p.d-q.d);let near=null,nd=1e9,hitT=null,hr=null,nr=null;
+ for(const t of open){const ad=Math.hypot(x-t.tx,y-t.ty);if(ad<nd){nd=ad;near=t}}
+ for(const t of open){const r=gshot(t.d,y,x,rl,wnd);if(!r)continue;const ex=r.dz-t.tx*t.d/1000,ey=r.dy-t.ty*t.d/1000;
+  if(!hitT&&Math.hypot(ex,ey)<=t.sz/2000){hitT=t;hr={r,ex,ey}}if(t===near)nr={r,ex,ey}}
+ snd('c');G.kt=now;G.kx=(Math.random()-.5)*.6;G.ky=1.6+Math.random()*.8;try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+ const o=hitT?{t:hitT,...hr}:nr?{t:near,...nr}:null;
+ if(!o){G.msg='Luoti ei yltänyt maaliin (alkunopeus liian pieni).';G.stk=0;return}
+ const t=o.t,r=o.r,hit=!!hitT,ex=o.ex,ey=o.ey,ix=r.dz/t.d*1000,iy=r.dy/t.d*1000,ckk=ckMil(),ce=Math.round(-ey/t.d*1000/ckk),cw=Math.round(-ex/t.d*1000/ckk),
+ cen=Math.hypot(ex,ey)<=t.sz/2000*.25,pts=hit?Math.round(t.d/10*(500/t.sz)*(cen?1.5:1)*(G.shots===1?1.5:1)*(1+Math.min(1,G.stk*.1))):0,
+ sp=hit?'Osuma '+t.d+' metriä'+(cen?', keskelle':'')+'. '+pts+' pistettä.':'Ohi. Korjaus '+(ce>=0?'ylös ':'alas ')+kl(Math.abs(ce))+', '+(cw>=0?'oikealle ':'vasemmalle ')+kl(Math.abs(cw))+'.',
+ en={t:Date.now(),pn:prof().name,dm:t.d,hit,dy:ey,dz:ex,ym:ey/t.d*1000,zm:ex/t.d*1000,wob,ws:wnd.ws,wc:wnd.wd,ev:ST.ses.ev,wv:ST.ses.wv};
+ ST.hist.push(en);if(ST.hist.length>500)ST.hist.shift();save();
+ G.fx.push({k:'tr',x0:x,y0:y,x1:ix,y1:iy,t0:now});
+ if(G.S.rep)G.w=rWind(G.S.wmax);else{G.w.ws=Math.max(0,Math.min(G.S.wmax,G.w.ws+(Math.random()-.5)*G.S.wmax*.35));G.w.wd=(Math.round(G.w.wd+(Math.random()-.5)*2)+11)%12+1}
+ const gg=G,ps=performance.now();
+ G.pend.push({at:ps+r.t*1000,f:n=>{if(G!==gg)return;
+  if(hit){t.hit=true;t.sw=1;t.swT=n;t.mk={x:ex,y:ey};G.hits++;G.stk++;G.sc+=pts;G.fx.push({k:'hit',x:ix,y:iy,t0:n,s:t.sz/1000/t.d*1000});
+   if(G.S.rep)G.pend.push({at:n+2200,f:()=>{if(G===gg){t.hit=false;t.sw=0;t.mk=null}}})}
+  else{G.stk=0;G.fx.push({k:'dust',x:ix,y:iy,t0:n,s:1.2/t.d*1000})}
+  G.msg=(hit?'OSUMA '+t.d+' m'+(cen?' · keskelle!':'')+' +'+pts:'OHI · korjaus '+(ce>=0?'ylös ':'alas ')+kl(Math.abs(ce))+', '+(cw>=0?'oikealle ':'vasemmalle ')+kl(Math.abs(cw)))+' · tuuli oli '+wnd.ws.toFixed(1)+' m/s klo '+wnd.wd}});
+ G.pend.push({at:ps+(r.t+t.d/343)*1000,f:()=>{if(G!==gg)return;snd(hit?'p':'t');if(ST.ui.snd==='both')say(sp)}})}
+function gtick(now){
+ for(let i=G.pend.length-1;i>=0;i--){const p=G.pend[i];if(now>=p.at){G.pend.splice(i,1);p.f(now)}}
+ if(G.over)return;const el=(now-G.t0)/1000;
+ if(G.S.time&&el>=G.S.time)return endGame('Aika loppui.');
+ if(!G.S.rep&&G.T.every(t=>t.hit)&&!G.pend.length)return endGame('Kaikki levyt kaatuneet.');
+ if(G.shots>=G.S.sh&&!G.pend.length&&!G.endAt)G.endAt=now+1800;
+ if(G.endAt&&now>=G.endAt)endGame('Laukaukset käytetty.')}
+function endGame(why){
+ if(G.over)return;G.over=true;const S=G.S,el=(performance.now()-G.t0)/1000,tb=S.time&&G.T.every(t=>t.hit)?Math.round((S.time-el)*3):0,sc=G.sc+tb,acc=G.shots?Math.round(100*G.hits/G.shots):0,
+ rk=acc>=90?'Tarkka-ampuja':acc>=70?'Kokenut ampuja':acc>=40?'Harjoittelija':'Aloittelija';
+ ST.ui.best=ST.ui.best||{};const nb=sc>(ST.ui.best[S.id]||0);if(nb)ST.ui.best[S.id]=sc;save();
+ $('gs_t').textContent=S.n+': '+rk;
+ $('gs_b').innerHTML='<p class="m">'+why+'</p><table><tr><td>Pisteet</td><td><b>'+sc+'</b>'+(nb?' · uusi ennätys!':'')+'</td></tr><tr><td>Osumat</td><td>'+G.hits+' / '+G.shots+' ('+acc+' %)</td></tr><tr><td>Aikabonus</td><td>'+tb+'</td></tr><tr><td>Aika</td><td>'+Math.round(el)+' s</td></tr><tr><td>Ennätys</td><td>'+ST.ui.best[S.id]+'</td></tr></table>';
+ setPhase('gsum')}
+function drawGame(){
+ if(!G||G.over)return;const now=performance.now();gtick(now);if(G.over)return;
+ const c=$('gc'),g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H/2,L=trail[trail.length-1]||[0,0,0,0,0,0],fov=[90,60,40,30][G.zoom],k=W/fov,
+ kq=now-G.kt<350?Math.pow(1-(now-G.kt)/350,2):0,ax=L[1]+kq*G.kx,ay=L[2]+kq*G.ky,roll=Math.max(-.6,Math.min(.6,L[5]||0)),
+ X=x=>cx+(x-ax)*k,Y=y=>cy-(y-ay)*k,y0=Y(0),w=G.w,th=(w.wd%12)*Math.PI/6,hx=-Math.sin(th);
+ g.save();g.translate(cx,cy);g.rotate(-roll);g.translate(-cx,-cy);
+ let gr=g.createLinearGradient(0,y0-H,0,y0);gr.addColorStop(0,'#3f78b8');gr.addColorStop(1,'#cfe3ee');g.fillStyle=gr;g.fillRect(-W,y0-3*H,3*W,3*H);
+ g.fillStyle='rgba(255,255,255,.55)';
+ for(let i=0;i<5;i++){const x=((rnd(i)*240+now/1000*(1+w.ws/3)*(i%2?1:-1)*.5)%240)-120;g.beginPath();g.ellipse(X(x),Y(10+rnd(i+9)*20),k*(6+rnd(i+3)*5),k*(1.2+rnd(i+5)),0,0,7);g.fill()}
+ g.fillStyle='#8fa9a0';g.beginPath();g.moveTo(-W,y0);for(let px=-W;px<=2*W;px+=12){const x=ax+(px-cx)/k;g.lineTo(px,Y(1.5+1.2*Math.sin(x*.045)+.6*Math.sin(x*.13+2)))}g.lineTo(2*W,y0);g.fill();
+ g.fillStyle='#4f6f58';for(let i=Math.floor((ax-fov)/1.4);i<=Math.ceil((ax+fov)/1.4);i++){const x=i*1.4;g.beginPath();g.moveTo(X(x-.6),y0);g.lineTo(X(x),Y(.5+rnd(i)*.9));g.lineTo(X(x+.6),y0);g.fill()}
+ g.fillStyle='#7da05a';g.fillRect(-W,y0,3*W,3*H);
+ let pv=y0;for(let d=1500,i=0;d>=60;d-=(d>400?50:d>200?25:10),i++){const yy=Y(-1000/d);if(i%2){g.fillStyle='rgba(40,80,20,.14)';g.fillRect(-W,pv,3*W,yy-pv)}pv=yy}
+ gr=g.createLinearGradient(0,y0,0,y0+H*.35);gr.addColorStop(0,'rgba(205,225,235,.65)');gr.addColorStop(1,'rgba(205,225,235,0)');g.fillStyle=gr;g.fillRect(-W,y0,3*W,H*.35);
+ const O=[...G.T.map(t=>({d:t.d,t})),...FL.map(f=>({d:f.d,f}))].sort((p,q)=>q.d-p.d);
+ for(const o of O){
+  if(o.t){const t=o.t,r=Math.max(2.5,t.sz/2000/t.d*1000*k),sx=X(t.tx),sy=Y(t.ty),gy=Y(t.ty-1000/t.d);
+   g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(sx,gy,r*.9,Math.max(1,r*.18),0,0,7);g.fill();
+   g.strokeStyle='#3a3a3a';g.lineWidth=Math.max(1.5,r*.18);g.beginPath();g.moveTo(sx,sy);g.lineTo(sx,gy);g.stroke();
+   const ag=(now-t.swT)/1000,a=t.sw?Math.cos(ag*10)*Math.exp(-ag*1.6)*.9:0,rx=r*Math.max(.25,Math.abs(Math.cos(a)));
+   g.fillStyle=t.hit?'#3d9b6b':'#d9482b';g.beginPath();g.ellipse(sx,sy,rx,r,0,0,7);g.fill();g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=Math.max(1,r*.1);g.stroke();
+   if(t.mk){g.fillStyle='rgba(235,235,235,.9)';g.beginPath();g.arc(sx+t.mk.x/t.d*1000*k*Math.cos(a),sy-t.mk.y/t.d*1000*k,Math.max(1.5,r*.12),0,7);g.fill()}
+   g.font='bold '+Math.max(11,Math.min(20,r*.8))+'px system-ui';g.textAlign='center';g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=3;g.fillStyle='#fff';const ty=gy+Math.max(14,r*.9+10);g.strokeText(t.d,sx,ty);g.fillText(t.d,sx,ty)}
+  else{const f=o.f,bx=X(f.x),by=Y(-1000/f.d),tp=Y(2000/f.d),L2=Math.max(8,1.3/f.d*1000*k),s=w.ws*(.85+.3*Math.sin(now/1700+f.d)),
+   ang=Math.min(1,s/6)*1.35*(.35+.65*Math.abs(hx)),fl=Math.sin(now/110+f.d)*.06*Math.min(1,s/3)*L2;
+   g.strokeStyle='#ddd';g.lineWidth=Math.max(1.5,L2*.06);g.beginPath();g.moveTo(bx,by);g.lineTo(bx,tp);g.stroke();
+   const sg=hx<0?-1:1,tx=bx+sg*L2*Math.sin(ang)*Math.max(.2,Math.abs(hx)),tyy=tp+L2*Math.cos(ang)+fl,hh=L2*.3;
+   g.fillStyle='#ff7a1a';g.beginPath();g.moveTo(bx,tp);g.lineTo(tx,tyy);g.lineTo(tx,tyy+hh);g.lineTo(bx,tp+hh);g.fill()}}
+ g.strokeStyle='#4f7a34';g.lineWidth=2;
+ for(const u of G.gr){const sx=X(u.x),sy=Y(u.y),l=k*.5,ln=hx*Math.min(1,w.ws/6)*l*.9;g.beginPath();g.moveTo(sx,sy);g.quadraticCurveTo(sx+ln*.4,sy-l*.6,sx+ln+Math.sin(now/300+u.x)*l*.1*(w.ws/3),sy-l*.9);g.stroke()}
+ G.fx=G.fx.filter(e=>now-e.t0<1500);
+ for(const e of G.fx){const ag=(now-e.t0)/1000;
+  if(e.k==='tr'){const al=1-ag/.5;if(al>0){g.strokeStyle='rgba(255,255,255,'+al*.6+')';g.lineWidth=2;g.beginPath();g.moveTo(X(e.x0),Y(e.y0));g.lineTo(X(e.x1),Y(e.y1));g.stroke()}}
+  else if(e.k==='dust'){const al=1-ag/1.3;if(al>0){const r=Math.max(5,e.s*k*(.6+ag*2));g.fillStyle='rgba(176,150,110,'+al*.6+')';g.beginPath();g.arc(X(e.x),Y(e.y)-ag*r*.4,r,0,7);g.fill();g.beginPath();g.arc(X(e.x)+r*.5,Y(e.y)-ag*r*.7,r*.6,0,7);g.fill()}}
+  else{const al=1-ag/.35;if(al>0){g.fillStyle='rgba(255,240,200,'+al+')';g.beginPath();g.arc(X(e.x),Y(e.y),Math.max(6,e.s*k*(.6+ag*3)),0,7);g.fill()}}}
+ g.restore();
+ for(const[col,lw]of[['rgba(255,255,255,.6)',5],['#000',2.5]]){g.strokeStyle=col;g.lineWidth=lw;g.beginPath();
+  g.moveTo(cx-k*8,cy);g.lineTo(cx-k*1.2,cy);g.moveTo(cx+k*1.2,cy);g.lineTo(cx+k*8,cy);g.moveTo(cx,cy+k*1.2);g.lineTo(cx,cy+k*8);g.moveTo(cx,cy-k*1.2);g.lineTo(cx,cy-k*8);
+  for(let m=1;m<=8;m++){const l=m%5?k*.18:k*.35;g.moveTo(cx+m*k,cy-l);g.lineTo(cx+m*k,cy+l);g.moveTo(cx-m*k,cy-l);g.lineTo(cx-m*k,cy+l);g.moveTo(cx-l,cy+m*k);g.lineTo(cx+l,cy+m*k);if(m<6){g.moveTo(cx-l,cy-m*k);g.lineTo(cx+l,cy-m*k)}}g.stroke()}
+ g.strokeStyle='#000';g.lineWidth=5;g.beginPath();g.moveTo(cx-k*8,cy);g.lineTo(cx-W,cy);g.moveTo(cx+k*8,cy);g.lineTo(cx+W,cy);g.moveTo(cx,cy+k*8);g.lineTo(cx,cy+H);g.stroke();
+ g.save();g.beginPath();g.rect(0,0,W,H);g.arc(cx,cy,W/2-4,0,7,true);g.fillStyle='#050505';g.fill('evenodd');g.restore();
+ g.strokeStyle='#222';g.lineWidth=6;g.beginPath();g.arc(cx,cy,W/2-4,0,7);g.stroke();
+ const fa=1-(now-G.kt)/140;if(fa>0){g.fillStyle='rgba(255,255,255,'+fa*.35+')';g.beginPath();g.arc(cx,cy,W/2-4,0,7);g.fill()}
+ const el=(now-G.t0)/1000,rem=G.S.time?Math.max(0,G.S.time-el):el;
+ $('g_sc').textContent=G.sc;$('g_tm').textContent=Math.floor(rem/60)+':'+String(Math.floor(rem%60)).padStart(2,'0');$('g_sh').textContent=G.shots+'/'+G.S.sh;$('g_st').textContent='×'+(1+Math.min(1,G.stk*.1)).toFixed(1);
+ $('g_ev').textContent=(ST.ses.ev>=0?'↑ ':'↓ ')+Math.abs(ST.ses.ev)+' klik';$('g_wv').textContent=(ST.ses.wv>=0?'→ ':'← ')+Math.abs(ST.ses.wv)+' klik';$('g_zm').textContent=['6x','12x','18x','24x'][G.zoom];
+ if($('gmsg').textContent!==G.msg)$('gmsg').textContent=G.msg}
+$('gz1').onclick=()=>{if(G&&G.zoom>0){G.zoom--;ST.ui.zoom=G.zoom;save()}};$('gz2').onclick=()=>{if(G&&G.zoom<3){G.zoom++;ST.ui.zoom=G.zoom;save()}};
+$('gz').onclick=()=>$('z').onclick();$('gtst').onclick=()=>fire(performance.now());$('gend').onclick=()=>endGame('Peli keskeytetty.');
+$('gagain').onclick=startGame;$('gmenu').onclick=()=>{if(micOn)stopMic();setPhase('setup')};
 
 renderSetup();newWind();drawT();show('train');setPhase('setup');if(!ST.ui.seen)obShow();setInterval(chipUpd,300);
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
