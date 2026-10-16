@@ -45,6 +45,9 @@ nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);b
 nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:8px 2px;min-height:60px}nav button.on{color:var(--acc)}
 nav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 body.run nav,body.run header{display:none}
+textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:9px;font:inherit;font-size:13px;color:var(--fg)}
+.rgrid{display:grid;gap:10px}@media(min-width:760px){body.remote{max-width:1100px}.rgrid{grid-template-columns:1fr 1fr;align-items:start}}
+#lk_qr{background:#fff;border-radius:12px;image-rendering:pixelated;margin:10px 0}
 #ob{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
 #ob>div{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%}
 </style></head><body>
@@ -59,7 +62,7 @@ body.run nav,body.run header{display:none}
    <details><summary class="m">Muokkaa käsin</summary><div data-form="wx" id="wf"></div></details></div>
   <div class="card"><div class="lbl">Maali ja harjoitustila</div>
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
-   <div data-form="ses" id="sf1"></div></div>
+   <div data-form="ses" id="sf1"></div><div class="hp" id="su_tgt" style="margin-top:12px"></div></div>
   <div class="card"><div class="lbl">Tuuli</div><div data-form="ses" id="sf2"></div></div>
   <details class="card"><summary>Laukaisun tunnistus (edistynyt)</summary><div data-form="ses" id="sf3"></div></details>
   <button id="startb" class="big">Aloita harjoitus</button>
@@ -80,7 +83,7 @@ body.run nav,body.run header{display:none}
  </div>
 
  <div id="p_shoot" hidden>
-  <div class="chips"><span class="chip" id="c_sen"></span><span class="chip" id="c_gy"></span><span class="chip" id="c_mic"></span><span class="chip" id="c_z"></span></div>
+  <div class="chips"><span class="chip" id="c_sen"></span><span class="chip" id="c_gy"></span><span class="chip" id="c_mic"></span><span class="chip" id="c_z"></span><span class="chip" id="c_lk"></span></div>
   <p class="m" id="ms"></p>
   <div class="card"><canvas id="rc" width="640" height="640"></canvas>
    <div class="sp"><span>Mittakaava</span><select id="sc"><option>2</option><option selected>5</option><option>10</option><option>20</option><option>50</option></select></div>
@@ -92,13 +95,34 @@ body.run nav,body.run header{display:none}
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
    <div class="sp"><span>Elevaatio</span><button class="s" data-a="ev:-10">−10</button><button class="s" data-a="ev:-1">−1</button><b id="v_ev"></b><button class="s" data-a="ev:1">+1</button><button class="s" data-a="ev:10">+10</button></div>
    <div class="sp"><span>Tuuli</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="v_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div>
-   <p class="m" id="hint"></p></div>
+   <p class="m" id="hint"></p><p class="m" id="tgt2"></p></div>
   <div class="row"><button id="z2" class="s">Nollaa uudelleen</button><button id="rep" class="s">Näytä jälki</button></div>
   <div class="row"><button id="tst" class="s">Testilaukaus</button><button id="endb" class="s">Lopeta harjoitus</button></div>
  </div>
 
  <div id="p_sum" hidden><h2>Harjoitus valmis</h2><div class="card" id="sum1"></div>
   <button id="newb" class="big">Uusi harjoitus</button><button id="toRes" class="big s">Katso tulokset</button></div>
+
+ <div id="p_remote" hidden>
+  <div class="chips"><span class="chip" id="r_link"></span><span class="chip" id="r_sen"></span><span class="chip" id="r_gy"></span><span class="chip" id="r_mic"></span><span class="chip" id="r_z"></span></div>
+  <p class="m" id="r_ph"></p>
+  <div class="rgrid">
+   <div class="card"><canvas id="rrc" width="640" height="640"></canvas>
+    <div class="sp"><span>Mittakaava</span><select id="r_sc"><option>2</option><option selected>5</option><option>10</option><option>20</option><option>50</option></select></div></div>
+   <div>
+    <div class="card"><div id="r_rs">Valmiina</div>
+     <div class="turrets"><div class="tur"><span>Elevaatio</span><b id="r_cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="r_cW">–</b><i>klikkiä</i></div></div>
+     <p id="r_rd" class="m"></p><canvas id="rtc" width="640" height="640"></canvas></div>
+    <div class="card">
+     <div class="sp"><span>Matka</span><button class="s" data-ra="dist:-50">−50</button><b id="r_dist"></b><button class="s" data-ra="dist:50">+50</button></div>
+     <div class="sp"><span>Elevaatio</span><button class="s" data-ra="ev:-10">−10</button><button class="s" data-ra="ev:-1">−1</button><b id="r_ev"></b><button class="s" data-ra="ev:1">+1</button><button class="s" data-ra="ev:10">+10</button></div>
+     <div class="sp"><span>Tuuli</span><button class="s" data-ra="wv:-10">−10</button><button class="s" data-ra="wv:-1">−1</button><b id="r_wv"></b><button class="s" data-ra="wv:1">+1</button><button class="s" data-ra="wv:10">+10</button></div>
+     <p class="m" id="r_hint"></p><p class="m" id="r_tgt"></p></div>
+    <div class="row"><button class="s" data-rc="zero">Nollaa</button><button class="s" data-rc="newwind">Uusi tuuli</button></div>
+    <div class="row"><button class="s" data-rc="rep">Näytä jälki</button><button class="s" data-rc="tst">Testilaukaus</button></div>
+    <div class="row"><button class="s" data-rc="end">Lopeta harjoitus</button><button id="r_disc" class="s warn">Katkaise yhteys</button></div>
+   </div></div>
+ </div>
 </section>
 
 <section id="t_gear" hidden>
@@ -132,6 +156,18 @@ body.run nav,body.run header{display:none}
   <div class="row"><button id="gbc" class="s">Kalibroi gyro</button><button id="dtb" class="s">Drift-testi</button></div><p class="m" id="gbm"></p>
   <div class="g" style="margin-top:10px"><div><span>Ylös/alas (mil)</span><b id="vp">0.00</b><span id="dp"></span></div><div><span>Vasen/oikea (mil)</span><b id="vy">0.00</b><span id="dy"></span></div><div><span>Kallistus (mil)</span><b id="vr">0.00</b><span id="dr"></span></div></div>
   <canvas id="c3" width="720" height="480" style="margin-top:10px"></canvas></div>
+ <h3>Kaksi laitetta</h3><div class="card">
+  <p class="m" id="lk_st">Ei yhteyttä. Toinen laite voi toimia näyttönä (esim. tabletti), kun anturilaite (puhelin) on aseessa.</p>
+  <div class="row"><button id="lk_sens" class="s">Tämä on anturi (aseessa)</button><button id="lk_disp" class="s">Tämä on näyttö</button></div>
+  <div id="lk_pair" hidden><p id="lk_step"></p>
+   <canvas id="lk_qr" width="480" height="480" hidden></canvas>
+   <video id="lk_vid" playsinline muted hidden style="width:100%;border-radius:12px"></video>
+   <div class="row"><button id="lk_scan" class="s" hidden>Skannaa QR</button><button id="lk_copy" class="s" hidden>Kopioi koodi</button></div>
+   <details><summary class="m">Tai käytä tekstikoodia</summary>
+    <label>Tämän laitteen koodi (anna toiselle laitteelle)</label><textarea id="lk_out" rows="3" readonly></textarea>
+    <label style="margin-top:8px">Toisen laitteen koodi (liitä tähän)</label><textarea id="lk_in" rows="3"></textarea>
+    <button id="lk_use" class="s" style="width:100%;margin-top:8px">Käytä koodia</button></details></div>
+  <button id="lk_end" class="s warn" style="width:100%;margin-top:10px" hidden>Katkaise yhteys</button></div>
  <h3>Ohje ja tiedot</h3><div class="card"><button id="obb" class="s" style="width:100%">Näytä opastus</button>
   <details style="margin-top:10px"><summary>Turvallisuus ja rajoitukset</summary><p class="m">Sovellus on harjoitusväline. Ase on aina tyhjä ja lipas pois. Laskenta perustuu G7-malliin, sääsyötteisiin ja puhelimen antureihin, eikä se korvaa oikeaa nollausta tai ballistiikkalaskuria. Coriolisia ei ole mukana.</p></details>
   <details><summary>Tietosuoja</summary><p class="m">Kaikki tiedot tallentuvat vain tähän laitteeseen. Mikrofonia käytetään vain napsahduksen havaitsemiseen, ääntä ei tallenneta. Sijaintia ja verkkoa käytetään vain, kun haet sään.</p></details>
@@ -156,13 +192,14 @@ const LB={'+Y':'Yläreuna (+Y)','-Y':'Alareuna (−Y)','+X':'Oikea reuna (+X)','
 const PF=[
  {id:'sh',l:'Kiikarin korkeus piipusta',u:'mm',d:50,h:'Etäisyys piipun keskilinjasta kiikarin keskilinjaan. Mittaa piipun yläreunan ja kiikarin putken alareunan väli ja lisää puolet piipun ja puolet putken halkaisijasta. Tyypillisesti 40–70 mm.'},
  {id:'zd',l:'Nollausmatka',u:'m',d:100,h:'Matka, jolla kiikarisi on nollattu eli luoti osuu tähtäyspisteeseen ilman torniin tehtyjä säätöjä. Useimmiten 100 m.'},
- {id:'cu',l:'Klikin yksikkö',o:[['mil','mil (mrad)'],['moa','MOA']],d:'mil',h:'Kiikarin klikkien yksikkö. Katso kiikarin tornista tai ohjekirjasta: mil (mrad) tai MOA.'},
- {id:'ck',l:'Yhden klikin arvo',u:'yllä valittu yksikkö',d:0.1,h:'Yhden klikin suuruus. Yleisiä arvoja ovat 0,1 mil ja 0,25 MOA. Löytyy kiikarin ohjekirjasta tai tornista.'},
+ {id:'cu',l:'Klikin yksikkö',o:[['mil','mil (mrad)'],['moa','MOA'],['mm','mm / 100 m']],d:'mil',h:'Kiikarin klikkien yksikkö. Katso kiikarin tornista tai ohjekirjasta: mil (mrad), MOA tai mm / 100 m (esim. 10 mm / 100 m = 0,1 mil). Yksikköä vaihtaessa klikin arvo muunnetaan automaattisesti.'},
+ {id:'ck',l:'Yhden klikin arvo',u:'yllä valittu yksikkö',d:0.1,h:'Yhden klikin suuruus valitussa yksikössä. Yleisiä arvoja ovat 0,1 mil, 0,25 MOA ja 10 mm / 100 m. Löytyy kiikarin ohjekirjasta tai tornista.'},
  {id:'bc',l:'Ballistinen kerroin (G7)',u:'lb/in²',d:0.28,h:'Luodin valmistajan ilmoittama G7-kerroin. Älä käytä G1-arvoa, sillä se on eri asia. G7 on tyypillisesti 0,15–0,35.'},
  {id:'mv',l:'Alkunopeus',u:'m/s',d:800,h:'Luodin nopeus suusta. Paras on oman latauksen kronografilla mitattu arvo. Muuten käytä latausoppaan tai patruunavalmistajan tietoa. Piipun pituus vaikuttaa.'},
  {id:'sg',l:'Stabiliteetti Sg',d:1.5,h:'Gyroskooppinen stabiliteetti. Vaikuttaa vain spin driftiin (sivusiirtymä). Tyypillisesti 1,3–2,5. Jos et tiedä, jätä 1,5. Arvo 0 poistaa spin driftin.'}];
 const SF=[
- {id:'td',l:'Taulun halkaisija',u:'mm',d:500,h:'Virtuaalisen taulun halkaisija. Teräslevy 500 mm vastaa 0,5 m levyä.'},
+ {id:'td',l:'Virtuaalisen taulun halkaisija',u:'mm',d:500,h:'Virtuaalisen taulun koko. Teräslevy 500 mm vastaa 0,5 m levyä.'},
+ {id:'rd',l:'Oikean maalin etäisyys',u:'m',d:25,h:'Etäisyys siihen oikeaan merkkiin, jota tähtäät (esim. 25 m). Se ei vaikuta ballistiseen laskentaan. Sovellus laskee sen avulla, minkä kokoinen oikean maalin pitäisi olla, jotta se näyttää samankokoiselta kuin valittu taulu valitulla matkalla. Mitä kauempana merkki, sitä tarkemmin voit tähdätä.'},
  {id:'wm',l:'Tuulen tila',o:[['rnd','Satunnainen (piilotettu)'],['man','Käsin (alla)']],d:'rnd',h:'Satunnaisessa tilassa sovellus arpoo tuulen ja kertoo sen vasta laukauksen jälkeen. Käsin-tilassa tuuli on alla annettu.'},
  {id:'ws',l:'Tuuli käsin',u:'m/s',d:3,h:'Tuulen nopeus, kun tila on Käsin.'},
  {id:'wd',l:'Tuulen suunta käsin',u:'klo',d:3,h:'Suunta kellotaulun mukaan: 12 = suoraan edestä, 3 = oikealta, 6 = takaa, 9 = vasemmalta.'},
@@ -177,14 +214,14 @@ const WF=[
  {id:'tc',l:'Lämpötila',u:'°C',d:15,h:'Ilman lämpötila ampumapaikalla.'},
  {id:'pr',l:'Ilmanpaine',u:'hPa',d:1013.25,h:'Käytä aseman painetta, ei merenpinnalle korjattua painetta. Sääpalvelun "merenpinnan paine" ei kelpaa ilman korjausta. Hae sää -painike käyttää asemapainetta.'},
  {id:'hu',l:'Ilmankosteus',u:'%',d:50,h:'Vaikutus on pieni. 50 % käy hyvin.'}];
-const DEF={ses:{dist:600,td:500,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,tm:'free',dmin:300,dmax:900,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,say:true,snd:'both',seen:false,step:100}};
+const DEF={ses:{dist:600,td:500,rd:25,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,tm:'free',dmin:300,dmax:900,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,say:true,snd:'both',seen:false,step:100}};
 function defProfile(){const o={id:''+Date.now()+Math.random(),name:'Oletus (esimerkkiarvot)'};for(const f of PF)o[f.id]=f.d;return o}
 let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui},hist:[]};
 try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui},hist:Array.isArray(s.hist)?s.hist:[]}}}catch(e){}
 const save=()=>{try{localStorage.setItem('kh2',JSON.stringify(ST))}catch(e){}};
 const prof=()=>ST.profiles[ST.active];
 const V=id=>{const p=prof();return +(id in p?p[id]:id in ST.wx?ST.wx[id]:ST.ses[id])};
-const ckMil=()=>{const p=prof();return p.cu==='moa'?p.ck*.29089:+p.ck};
+const ckMil=()=>{const p=prof();return p.cu==='moa'?p.ck*.29089:p.cu==='mm'?p.ck/100:+p.ck};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function formHTML(F,obj,pre){return F.map(f=>{const v=obj[f.id];
  const inp=f.o?`<select data-k="${f.id}">${f.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${o[1]}</option>`).join('')}</select>`:`<input data-k="${f.id}" type="number" step="any" inputmode="decimal" value="${v}">`;
@@ -219,7 +256,7 @@ function apply(M){
  const t=performance.now();n++;
  if(lastP!=null){const d=Math.abs(cur.p-lastP)*MIL;if(d>1e-4)steps.push([t,d])}lastP=cur.p;
  const rx=wrap(cur.y-z0.y)*MIL,ry=(cur.p-z0.p)*MIL,fl=oe(rx,ry,t);
- trail.push([t,fl[0],fl[1],rx,ry,wrap(cur.r-z0.r)]);
+ trail.push([t,fl[0],fl[1],rx,ry,wrap(cur.r-z0.r)]);lnkAim(fl[0],fl[1],wrap(cur.r-z0.r),t);
  while(trail.length&&t-trail[0][0]>4000)trail.shift();
 }
 
@@ -358,6 +395,7 @@ const f2=x=>(x>=0?'+':'')+x.toFixed(2);
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v)}
 
 function draw(){
+ if(phase==='remote')drawRemote();
  const now=performance.now();
  if(now-tH>1000){hz=n*1000/(now-tH);n=0;tH=now}
  const dp=(cur.p-z0.p),dy=wrap(cur.y-z0.y),dr=wrap(cur.r-z0.r);
@@ -477,7 +515,7 @@ function fire(ts){
  $('cE').textContent=(ce>=0?'↑ ':'↓ ')+Math.abs(ce);$('cW').textContent=(cw>=0?'→ ':'← ')+Math.abs(cw);
  $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd+nx+gyWarn();
  try{navigator.vibrate&&navigator.vibrate(hit?[250]:[70,70,70])}catch(e){}
- announce(hit,sp);drawT()}
+ announce(hit,sp);drawT();lnkShot(en)}
 let actx=null,voices=[];
 function loadV(){try{voices=speechSynthesis.getVoices()||[]}catch(e){}}
 try{speechSynthesis.onvoiceschanged=loadV;loadV()}catch(e){}
@@ -508,14 +546,14 @@ function drawT(){
 // ===== Käyttöliittymä (uusi) =====
 const TITLES={train:'Harjoittele',gear:'Varusteet',res:'Tulokset',set:'Asetukset'};
 let phase='setup',stepI=0,resTab='h',calSkip=false,micSkip=false;
-const SF1=SF.filter(f=>['td','tm','dmin','dmax'].includes(f.id)),SF2=SF.filter(f=>['wm','ws','wd'].includes(f.id)),SF3=SF.filter(f=>['dl','lk','sl','sw'].includes(f.id));
+const SF1=SF.filter(f=>['td','rd','tm','dmin','dmax'].includes(f.id)),SF2=SF.filter(f=>['wm','ws','wd'].includes(f.id)),SF3=SF.filter(f=>['dl','lk','sl','sw'].includes(f.id));
 const PFK=PF.filter(f=>['sh','zd','cu','ck'].includes(f.id)),PFC=PF.filter(f=>['bc','mv','sg'].includes(f.id));
-const psum=p=>p.mv+' m/s · G7 '+p.bc+' · '+p.ck+(p.cu==='moa'?' MOA':' mil')+'/klik';
+const psum=p=>p.mv+' m/s · G7 '+p.bc+' · '+p.ck+({moa:' MOA',mm:' mm/100 m'}[p.cu]||' mil')+'/klik';
 function show(t){for(const id of['train','gear','res','set'])$('t_'+id).hidden=id!==t;
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('hdt').textContent=TITLES[t];if(t==='gear')renderGear();if(t==='res')renderRes();window.scrollTo(0,0)}
-function setPhase(p){phase=p;for(const x of['setup','prep','shoot','sum'])$('p_'+x).hidden=x!==p;
- document.body.classList.toggle('run',p==='prep'||p==='shoot');if(p==='setup')renderSetup();window.scrollTo(0,0)}
+function setPhase(p){phase=p;for(const x of['setup','prep','shoot','sum','remote'])$('p_'+x).hidden=x!==p;
+ document.body.classList.toggle('run',p==='prep'||p==='shoot'||p==='remote');document.body.classList.toggle('remote',p==='remote');lnkState();if(p==='setup')renderSetup();window.scrollTo(0,0)}
 function condForms(){
  $('sf1').innerHTML=formHTML(SF1.filter(f=>(f.id!=='dmin'&&f.id!=='dmax')||ST.ses.tm==='rng'),ST.ses,'a_');
  $('sf2').innerHTML=formHTML(SF2.filter(f=>f.id==='wm'||ST.ses.wm==='man'),ST.ses,'b_');
@@ -530,7 +568,9 @@ function updateHints(){
  $('su_psum').textContent=psum(prof());$('su_wx').textContent=ST.wx.tc+' °C · '+ST.wx.pr+' hPa · '+ST.wx.hu+' %';
  let t='';
  if(ST.ui.hint){try{const P=params(),mil=(solveEl(P,V('dist'))-solveEl(P,V('zd')))*1000;t='Dope '+V('dist')+' m: ylös '+Math.round(mil/ckMil())+' klik ('+mil.toFixed(2)+' mil)'}catch(e){}}
- $('hint').textContent=t}
+ $('hint').textContent=t;
+ const rd=V('rd'),Dm=V('dist'),real=V('td')*rd/Dm,fx=x=>x<10?x.toFixed(1):x<100?x.toFixed(1):Math.round(x),tx='Oikean maalin koko '+rd+' m:ssä: <b>Ø '+fx(real)+' mm</b> (vastaa Ø '+V('td')+' mm taulua '+Dm+' m:ssä). 1 mil = '+rd+' mm, 1 klik = '+(ckMil()*rd).toFixed(1)+' mm.';
+ $('su_tgt').innerHTML=tx;$('tgt2').innerHTML=tx;lnkState()}
 function renderGear(){
  $('plist').innerHTML=ST.profiles.map((p,i)=>`<div class="gi${i==ST.active?' on':''}" data-p="${i}"><div><b>${esc(p.name)}</b><div class="m">${psum(p)}</div></div><span>${i==ST.active?'Käytössä':''}</span></div>`).join('');
  $('pname').value=prof().name;$('pf1').innerHTML=formHTML(PFK,prof(),'p_');$('pf2').innerHTML=formHTML(PFC,prof(),'q_')}
@@ -566,18 +606,20 @@ function updateWiz(){
  if(stepI===2)ok=zT>0;
  $('pn').disabled=!ok}
 async function quickStart(){if(!running)await $('go').onclick();startShoot()}
-function startShoot(){ser=[];frozen=null;drawT();newWind();setPhase('shoot');
+function startShoot(){ser=[];frozen=null;drawT();newWind();lkSend({t:'reset'});setPhase('shoot');
  $('rs').textContent='Valmiina';$('rs').style.color='';$('cE').textContent='–';$('cW').textContent='–';$('rd').textContent='';updateHints()}
 function endSession(){if(micOn)stopMic();$('sum1').innerHTML=stats(ser);setPhase('sum')}
 function setChip(id,c,t){const e=$(id);e.className='chip '+c;e.textContent=t}
 function chipUpd(){
  const now=performance.now(),last=trail.length?trail[trail.length-1][0]:0,alive=running&&now-last<800;
  const age=zT?(now-zT)/1000:0,ex=(mode==='own'&&GB.ok&&zT)?(GB.rate!=null?GB.rate*age/60:GB.se*MIL*age):0;
- if(phase==='shoot'){
-  setChip('c_sen',alive?'ok':'bad','Anturi '+(alive?'OK':'ei dataa'));
-  setChip('c_gy',mode!=='own'?'warn':GB.ok?'ok':GB.cal?'warn':'bad',mode!=='own'?'Gyro: ei kalibrointia':GB.ok?'Gyro kalibroitu':GB.cal?'Gyro kalibroidaan':'Gyro ei kalibroitu');
-  setChip('c_mic',micOn?'ok':'warn',micOn?'Mikrofoni päällä':'Mikrofoni pois');
-  setChip('c_z',!zT?'bad':(age>60||ex>=1)?'warn':'ok',!zT?'Ei nollattu':'Nollaus '+Math.round(age)+' s'+(ex>0?' · ±'+ex.toFixed(1)+' mil':''))}
+ const lk=LK.open&&LK.role==='sens';
+ const CH={sen:[alive?'ok':'bad','Anturi '+(alive?'OK':'ei dataa')],
+  gy:[mode!=='own'?'warn':GB.ok?'ok':GB.cal?'warn':'bad',mode!=='own'?'Gyro: ei kalibrointia':GB.ok?'Gyro kalibroitu':GB.cal?'Gyro kalibroidaan':'Gyro ei kalibroitu'],
+  mic:[micOn?'ok':'warn',micOn?'Mikrofoni päällä':'Mikrofoni pois'],
+  z:[!zT?'bad':(age>60||ex>=1)?'warn':'ok',!zT?'Ei nollattu':'Nollaus '+Math.round(age)+' s'+(ex>0?' · ±'+ex.toFixed(1)+' mil':'')]};
+ if(phase==='shoot'){for(const k of['sen','gy','mic','z'])setChip('c_'+k,CH[k][0],CH[k][1]);setChip('c_lk',lk?'ok':'warn',lk?'Näyttö yhdistetty':'Ei näyttöä')}
+ if(lk&&now-LK.lastCh>600){LK.lastCh=now;lkSend({t:'ch',...CH})}
  if(phase==='prep'){
   $('gbar').style.width=(GB.cal?Math.min(100,(now-GB.cal.t0)/GCAL*100):GB.ok?100:0)+'%';
   $('zst').textContent=zT?'Nollattu ✓ ('+Math.round(age)+' s sitten)':'Ei vielä nollattu.';
@@ -586,13 +628,15 @@ function chipUpd(){
 document.addEventListener('click',e=>{
  const t=e.target;if(!t||!t.closest)return;
  const q=t.closest('.q');if(q){const h=$('h_'+q.dataset.h);if(h)h.hidden=!h.hidden;return}
- const a=t.closest('[data-a]');if(a){const[k,d]=a.dataset.a.split(':');ST.ses[k]=(+ST.ses[k]||0)+ +d;if(k==='dist')ST.ses.dist=Math.max(50,Math.min(2000,ST.ses.dist));save();updateHints();return}
+ const a=t.closest('[data-a]');if(a){const[k,d]=a.dataset.a.split(':');adj(k,+d);return}
+ const ra=t.closest('[data-ra]');if(ra){const[k,d]=ra.dataset.ra.split(':');lkSend({t:'adj',k,d:+d});return}
+ const rc=t.closest('[data-rc]');if(rc){lkSend({t:'cmd',c:rc.dataset.rc});return}
  const g=t.closest('[data-p]');if(g){ST.active=+g.dataset.p;save();renderGear();updateHints();return}
  const n=t.closest('#nav button');if(n)show(n.dataset.t)});
 document.addEventListener('input',e=>{
  const t=e.target,k=t.dataset&&t.dataset.k;if(!k)return;
  const fk=t.closest('[data-form]').dataset.form,o=fk==='prof'?prof():fk==='wx'?ST.wx:ST.ses;
- if(t.tagName==='SELECT')o[k]=t.value;else{const v=parseFloat(t.value);if(!isNaN(v))o[k]=v}
+ if(t.tagName==='SELECT'){const old=(fk==='prof'&&k==='cu')?ckMil():0;o[k]=t.value;if(old){const c=prof();c.ck=+({mil:old,moa:old/.29089,mm:old*100}[c.cu]).toFixed(4);renderGear()}}else{const v=parseFloat(t.value);if(!isNaN(v))o[k]=v}
  save();updateHints();if(fk==='ses'&&(k==='tm'||k==='wm')){condForms();if(k==='wm')newWind()}
  if(fk==='prof'&&phase==='setup'&&curTabIs('gear')){/* lista päivittyy poistuttaessa */}});
 const curTabIs=id=>!$('t_'+id).hidden;
@@ -655,6 +699,131 @@ $('gbc').onclick=()=>{
 $('dtb').onclick=()=>{
  if(!running||!R){$('gbm').textContent='Paina ensin Käynnistä.';return}
  DT={t0:performance.now(),y0:cur.y,p0:cur.p,r0:cur.r,pm:0};$('gbm').textContent='Drift-testi: 30 s. Älä liikuta asetta.'};
+
+// ===== Kaksi laitetta (WebRTC + QR) =====
+const LK={pc:null,ch:null,role:null,open:false,lastAim:0,scanning:false,stream:null,lastCh:0,closing:false};
+const RM={st:{},aim:[],ser:[],last:null,fz:null,ch:{},roll:0};
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+const QRURLS=['https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js','https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'];
+function lkSend(o){try{if(LK.ch&&LK.ch.readyState==='open')LK.ch.send(JSON.stringify(o))}catch(e){}}
+function lkStat(m){$('lk_st').textContent=m}
+const b64u=u=>{let s='';u.forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+const unb64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
+function slim(sdp){return sdp.split('\r\n').filter(l=>{if(!l.startsWith('a=candidate'))return true;const p=l.split(' ');return p[2].toLowerCase()==='udp'&&!p[4].includes(':')}).join('\r\n')}
+async function pack(d){
+ const enc=new TextEncoder().encode(JSON.stringify({t:d.type,s:slim(d.sdp)}));
+ if(typeof CompressionStream!=='undefined'){const cs=new CompressionStream('deflate-raw'),w=cs.writable.getWriter();w.write(enc);w.close();return 'KH1:'+b64u(new Uint8Array(await new Response(cs.readable).arrayBuffer()))}
+ return 'KH0:'+b64u(enc)}
+async function unpack(code){
+ code=String(code).trim();const k=code.slice(0,4),u=unb64u(code.slice(4));let txt;
+ if(k==='KH1:'){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u);w.close();txt=new TextDecoder().decode(await new Response(ds.readable).arrayBuffer())}
+ else if(k==='KH0:')txt=new TextDecoder().decode(u);else throw new Error('tuntematon koodi');
+ const o=JSON.parse(txt);return{type:o.t,sdp:o.s}}
+const gathered=(pc,ms=2500)=>new Promise(res=>{if(pc.iceGatheringState==='complete')return res();const t=setTimeout(res,ms);pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete'){clearTimeout(t);res()}})});
+async function primeCam(){try{const s=await navigator.mediaDevices.getUserMedia({video:true});s.getTracks().forEach(t=>t.stop())}catch(e){}}
+function loadQR(){return new Promise(res=>{if(typeof qrcode==='function')return res(true);let i=0;const next=()=>{if(i>=QRURLS.length)return res(false);const sc=document.createElement('script');sc.src=QRURLS[i++];sc.crossOrigin='anonymous';sc.onload=()=>typeof qrcode==='function'?res(true):next();sc.onerror=next;document.head.appendChild(sc)};next()})}
+async function showQR(code){
+ $('lk_out').value=code;$('lk_copy').hidden=false;
+ const ok=await loadQR(),c=$('lk_qr');
+ if(!ok){c.hidden=true;lkStat('QR-kirjasto ei latautunut (tarvitaan verkko ensimmäisellä kerralla). Käytä tekstikoodia.');return}
+ try{const qr=qrcode(0,'L');qr.addData(code);qr.make();const n=qr.getModuleCount(),m=4,sc=Math.max(2,Math.floor(480/(n+2*m))),sz=sc*(n+2*m),g=c.getContext('2d');
+  c.width=c.height=sz;g.fillStyle='#fff';g.fillRect(0,0,sz,sz);g.fillStyle='#000';
+  for(let r=0;r<n;r++)for(let q=0;q<n;q++)if(qr.isDark(r,q))g.fillRect((q+m)*sc,(r+m)*sc,sc,sc);c.hidden=false}
+ catch(e){c.hidden=true;lkStat('QR-koodi on liian suuri. Käytä tekstikoodia.')}}
+function stopScan(){LK.scanning=false;if(LK.stream)LK.stream.getTracks().forEach(t=>t.stop());LK.stream=null;const v=$('lk_vid');v.hidden=true;v.srcObject=null}
+async function scanQR(cb){
+ if(typeof BarcodeDetector==='undefined'){lkStat('QR-lukija ei ole tässä selaimessa käytettävissä. Liitä koodi tekstinä.');return}
+ let det;try{det=new BarcodeDetector({formats:['qr_code']});LK.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})}catch(e){lkStat('Kameran käyttö ei onnistunut. Liitä koodi tekstinä.');return}
+ const v=$('lk_vid');v.srcObject=LK.stream;v.hidden=false;$('lk_qr').hidden=true;try{await v.play()}catch(e){}LK.scanning=true;
+ const loop=async()=>{if(!LK.scanning)return;
+  try{const r=await det.detect(v);if(r.length&&String(r[0].rawValue).startsWith('KH')){stopScan();try{await cb(r[0].rawValue)}catch(e){lkStat('Koodi ei kelvannut: '+e.message)}return}}catch(e){}
+  setTimeout(loop,200)};loop()}
+function lkReset(){LK.closing=true;stopScan();try{LK.ch&&LK.ch.close()}catch(e){}try{LK.pc&&LK.pc.close()}catch(e){}LK.pc=LK.ch=null;LK.open=false;LK.closing=false;
+ $('lk_qr').hidden=true;$('lk_out').value='';$('lk_in').value='';$('lk_copy').hidden=true;$('lk_scan').hidden=true}
+function lkDown(){if(LK.closing)return;const was=LK.role,wo=LK.open;lkReset();LK.role=null;$('lk_end').hidden=true;$('lk_pair').hidden=true;
+ lkStat(wo?'Yhteys katkesi. Pariuta laitteet uudelleen.':'Yhteys epäonnistui. Yritä uudelleen tai käytä tekstikoodia.');
+ if(was==='disp'&&phase==='remote')setPhase('setup')}
+function lkEnd(){const was=LK.role;lkReset();LK.role=null;$('lk_end').hidden=true;$('lk_pair').hidden=true;lkStat('Ei yhteyttä. Toinen laite voi toimia näyttönä (esim. tabletti), kun anturilaite (puhelin) on aseessa.');if(was==='disp'&&phase==='remote')setPhase('setup')}
+function lkUp(){LK.open=true;$('lk_pair').hidden=true;$('lk_end').hidden=false;stopScan();
+ if(LK.role==='sens'){lkStat('Yhdistetty näyttölaitteeseen ✓');lnkState()}
+ else{lkStat('Yhdistetty anturilaitteeseen ✓');RM.aim=[];RM.ser=[];RM.last=null;RM.fz=null;RM.ch={};setPhase('remote');show('train');rmDom()}}
+function newPC(){const pc=new RTCPeerConnection(ICE);pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='failed'||s==='closed')lkDown()};pc.ondatachannel=e=>wireCh(e.channel);return pc}
+function wireCh(ch){LK.ch=ch;ch.onopen=lkUp;ch.onclose=lkDown;ch.onmessage=e=>{try{lkMsg(JSON.parse(e.data))}catch(x){}}}
+async function lkStartDisp(){
+ lkReset();LK.role='disp';$('lk_pair').hidden=false;$('lk_step').textContent='Valmistellaan yhteyttä...';
+ if(typeof RTCPeerConnection==='undefined'){lkStat('Selain ei tue laitteiden välistä yhteyttä (WebRTC).');return}
+ await primeCam();
+ try{const pc=LK.pc=newPC();wireCh(pc.createDataChannel('kh'));await pc.setLocalDescription(await pc.createOffer());await gathered(pc);
+  await showQR(await pack(pc.localDescription));
+  $('lk_step').textContent='Vaihe 1/2: skannaa tämä QR aseessa olevalla laitteella (Asetukset → Kaksi laitetta → Tämä on anturi).';
+  $('lk_scan').textContent='Vaihe 2/2: skannaa vastaus';$('lk_scan').hidden=false;
+ }catch(e){lkStat('Yhteyden valmistelu epäonnistui: '+e.message)}}
+async function lkStartSens(){
+ lkReset();LK.role='sens';$('lk_pair').hidden=false;$('lk_scan').hidden=true;
+ if(typeof RTCPeerConnection==='undefined'){lkStat('Selain ei tue laitteiden välistä yhteyttä (WebRTC).');return}
+ $('lk_step').textContent='Skannaa näyttölaitteen QR-koodi (näyttölaitteella: Asetukset → Kaksi laitetta → Tämä on näyttö).';
+ await scanQR(lkAccept)}
+async function lkAccept(code){
+ const d=await unpack(code);
+ if(LK.role==='sens'){
+  if(d.type!=='offer')throw new Error('tämä ei ole näyttölaitteen koodi');
+  const pc=LK.pc=newPC();await pc.setRemoteDescription(d);await pc.setLocalDescription(await pc.createAnswer());await gathered(pc);
+  await showQR(await pack(pc.localDescription));
+  $('lk_step').textContent='Vaihe 2/2: näytä tämä QR näyttölaitteelle (siellä: Skannaa vastaus).'}
+ else if(LK.role==='disp'){
+  if(d.type!=='answer')throw new Error('tämä ei ole anturilaitteen vastaus');
+  await LK.pc.setRemoteDescription(d);$('lk_step').textContent='Yhdistetään...'}
+ else throw new Error('valitse ensin laitteen rooli')}
+function adj(k,d){if(!['dist','ev','wv'].includes(k))return;ST.ses[k]=(+ST.ses[k]||0)+d;if(k==='dist')ST.ses.dist=Math.max(50,Math.min(2000,ST.ses.dist));save();updateHints()}
+// --- anturilaite lähettää
+function lnkAim(x,y,r,t){if(!LK.open||LK.role!=='sens'||t-LK.lastAim<60)return;LK.lastAim=t;lkSend({t:'aim',x:+x.toFixed(2),y:+y.toFixed(2),r:+r.toFixed(4)})}
+function lnkState(){if(!LK.open||LK.role!=='sens')return;lkSend({t:'st',ph:phase,dist:V('dist'),td:V('td'),rd:V('rd'),ev:ST.ses.ev,wv:ST.ses.wv,hint:$('hint').textContent,tgt:$('tgt2').innerHTML,prof:prof().name})}
+function lnkShot(en){
+ if(!LK.open||LK.role!=='sens')return;const f=frozen,st=f?Math.max(1,Math.ceil(f.pts.length/70)):1,pts=f?f.pts.filter((_,i)=>i%st===0).map(p=>[0,+p[1].toFixed(2),+p[2].toFixed(2)]):[];
+ lkSend({t:'shot',en:{dm:en.dm,hit:en.hit,ym:+en.ym.toFixed(3),zm:+en.zm.toFixed(3)},rs:$('rs').textContent,ce:$('cE').textContent,cw:$('cW').textContent,rd:$('rd').innerHTML,pts,at:f?[+f.at[1].toFixed(2),+f.at[2].toFixed(2)]:[0,0]})}
+function lkMsg(m){
+ if(LK.role==='sens'){
+  if(m.t==='adj')adj(m.k,+m.d);
+  else if(m.t==='cmd'){const c=m.c;if(c==='zero')$('z').onclick();else if(c==='newwind')newWind();else if(c==='rep')$('rep').onclick();else if(c==='tst')fire(performance.now());else if(c==='end'&&phase==='shoot')endSession()}
+ }else if(LK.role==='disp'){
+  if(m.t==='st'){RM.st=m;rmDom()}
+  else if(m.t==='aim'){const t=performance.now();RM.aim.push([t,m.x,m.y]);while(RM.aim.length&&t-RM.aim[0][0]>2500)RM.aim.shift();RM.roll=m.r}
+  else if(m.t==='shot'){RM.ser.push(m.en);if(RM.ser.length>10)RM.ser.shift();RM.last=m;const t=performance.now();RM.fz={pts:(m.pts||[]).map(p=>[t,p[1],p[2]]),at:[0,m.at[0],m.at[1]],until:t+6000};rmDom()}
+  else if(m.t==='reset'){RM.ser=[];RM.last=null;RM.fz=null;rmDom()}
+  else if(m.t==='ch'){RM.ch=m;rmDom()}}}
+// --- näyttölaite piirtää
+function rmDom(){
+ const s=RM.st||{},l=RM.last,PH={setup:'Puhelin odottaa harjoituksen aloitusta.',prep:'Puhelimella valmistelu käynnissä.',shoot:'Ammunta käynnissä.',sum:'Harjoitus päättynyt.'};
+ $('r_ph').textContent=(PH[s.ph]||'Odotetaan tietoja puhelimelta...')+(s.prof?' Varuste: '+s.prof+'.':'');
+ $('r_dist').textContent=(s.dist||'')+' m';$('r_ev').textContent=((s.ev||0)>=0?'↑ ':'↓ ')+Math.abs(s.ev||0)+' klik';$('r_wv').textContent=((s.wv||0)>=0?'→ ':'← ')+Math.abs(s.wv||0)+' klik';
+ $('r_hint').textContent=s.hint||'';$('r_tgt').innerHTML=s.tgt||'';
+ $('r_rs').textContent=l?l.rs:'Valmiina';$('r_rs').style.color=l?(l.en.hit?'var(--acc)':'var(--bad)'):'';
+ $('r_cE').textContent=l?l.ce:'–';$('r_cW').textContent=l?l.cw:'–';$('r_rd').innerHTML=l?l.rd:'';
+ setChip('r_link',LK.open?'ok':'bad',LK.open?'Yhteys OK':'Ei yhteyttä');
+ const c=RM.ch||{};for(const k of['sen','gy','mic','z'])if(c[k])setChip('r_'+k,c[k][0],c[k][1])}
+function drawRemote(){
+ const now=performance.now(),s=RM.st||{};
+ let c=$('rrc'),g=c.getContext('2d'),W=c.width,cx=W/2;const S=+$('r_sc').value||5,k=(W/2-16)/S;
+ g.clearRect(0,0,W,W);g.strokeStyle=css('--line');g.lineWidth=2;
+ for(let i=1;i<=S;i++){if(S>10&&i%5)continue;g.beginPath();g.arc(cx,cx,i*k,0,7);g.stroke()}
+ g.strokeStyle=css('--mut');g.beginPath();g.moveTo(0,cx);g.lineTo(W,cx);g.moveTo(cx,0);g.lineTo(cx,W);g.stroke();
+ const fz=RM.fz&&now<RM.fz.until,TR=fz?RM.fz.pts:RM.aim,X=p=>cx+p[1]*k,Y=p=>cx-p[2]*k;
+ g.lineWidth=3;
+ for(let i=2;i<TR.length;i++){const a=fz?1:1-(now-TR[i][0])/2500;if(a<=0)continue;const A=TR[i-2],B=TR[i-1],C=TR[i];g.strokeStyle=css('--acc');g.globalAlpha=a;g.beginPath();g.moveTo((X(A)+X(B))/2,(Y(A)+Y(B))/2);g.quadraticCurveTo(X(B),Y(B),(X(B)+X(C))/2,(Y(B)+Y(C))/2);g.stroke()}
+ g.globalAlpha=1;
+ if(TR.length){const p=TR[TR.length-1];g.fillStyle=css('--bad');g.beginPath();g.arc(X(p),Y(p),9,0,7);g.fill()}
+ if(fz){g.strokeStyle=css('--bad');g.lineWidth=4;const q=RM.fz.at,x0=X(q),y0=Y(q);g.beginPath();g.moveTo(x0-14,y0-14);g.lineTo(x0+14,y0+14);g.moveTo(x0+14,y0-14);g.lineTo(x0-14,y0+14);g.stroke()}
+ c=$('rtc');g=c.getContext('2d');W=c.width;cx=W/2;
+ const Dm=s.dist||600,R=(s.td||500)/2000/Dm*1000,cur=RM.ser.filter(e=>e.dm===Dm);
+ let m=R*2.2;for(const e of cur)m=Math.max(m,Math.hypot(e.zm,e.ym)*1.2);const k2=(W/2-20)/m;
+ g.clearRect(0,0,W,W);g.fillStyle=css('--line');g.beginPath();g.arc(cx,cx,R*k2,0,7);g.fill();
+ g.strokeStyle=css('--mut');g.lineWidth=1;g.beginPath();g.moveTo(0,cx);g.lineTo(W,cx);g.moveTo(cx,0);g.lineTo(cx,W);g.stroke();
+ g.font='bold 22px sans-serif';g.textAlign='center';
+ cur.forEach((e,i)=>{const x=cx+e.zm*k2,y=cx-e.ym*k2;g.fillStyle=e.hit?css('--acc'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
+$('lk_sens').onclick=lkStartSens;$('lk_disp').onclick=lkStartDisp;$('lk_end').onclick=lkEnd;$('r_disc').onclick=lkEnd;
+$('lk_scan').onclick=()=>scanQR(lkAccept);
+$('lk_copy').onclick=async()=>{try{await navigator.clipboard.writeText($('lk_out').value);lkStat('Koodi kopioitu.')}catch(e){$('lk_out').select()}};
+$('lk_use').onclick=async()=>{try{await lkAccept($('lk_in').value)}catch(e){lkStat('Koodi ei kelvannut: '+e.message)}};
 
 renderSetup();newWind();drawT();show('train');setPhase('setup');if(!ST.ui.seen)obShow();setInterval(chipUpd,300);
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
