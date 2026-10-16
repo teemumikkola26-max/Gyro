@@ -53,6 +53,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
 .stg{display:grid;gap:0}.stg .gi{margin:4px 0}
 #gc{width:100%;aspect-ratio:1/1;border-radius:var(--r);background:#000;touch-action:none}
 .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:6px 0}.hud div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 2px}.hud b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.hud span{font-size:11px;color:var(--mut);text-transform:uppercase}
+#g_ev,#g_wv,#g_zm{white-space:nowrap;min-width:54px;text-align:center}
 #gmsg{min-height:44px;font-size:16px;font-weight:600}
 </style></head><body>
 <header><div id="hdt">Harjoittele</div></header>
@@ -94,12 +95,12 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
    <div class="sp"><span>Mittakaava</span><select id="sc"><option>2</option><option selected>5</option><option>10</option><option>20</option><option>50</option></select></div>
    <p class="m" id="ex"></p><div id="lv"></div><p class="m" style="text-align:center;margin-top:0">Kallistus</p></div>
   <div class="card"><div id="rs">Valmiina</div>
-   <div class="turrets"><div class="tur"><span>Elevaatio</span><b id="cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="cW">–</b><i>klikkiä</i></div></div>
+   <div class="turrets"><div class="tur"><span>Elevaatio (klik)</span><b id="cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="cW">–</b><i>klikkiä</i></div></div>
    <p id="rd" class="m"></p><canvas id="tc" width="640" height="640"></canvas></div>
   <div class="card">
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
    <div class="sp"><span>Elevaatio</span><button class="s" data-a="ev:-10">−10</button><button class="s" data-a="ev:-1">−1</button><b id="v_ev"></b><button class="s" data-a="ev:1">+1</button><button class="s" data-a="ev:10">+10</button></div>
-   <div class="sp"><span>Tuuli</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="v_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div>
+   <div class="sp"><span>Tuuli (klik)</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="v_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div>
    <p class="m" id="hint"></p><p class="m" id="tgt2"></p></div>
   <div class="row"><button id="z2" class="s">Nollaa uudelleen</button><button id="rep" class="s">Näytä jälki</button></div>
   <div class="row"><button id="tst" class="s">Testilaukaus</button><button id="endb" class="s">Lopeta harjoitus</button></div>
@@ -962,12 +963,12 @@ function drawGame(){
   g.moveTo(cx-k*8,cy);g.lineTo(cx-k*1.2,cy);g.moveTo(cx+k*1.2,cy);g.lineTo(cx+k*8,cy);g.moveTo(cx,cy+k*1.2);g.lineTo(cx,cy+k*8);g.moveTo(cx,cy-k*1.2);g.lineTo(cx,cy-k*8);
   for(let m=1;m<=8;m++){const l=m%5?k*.18:k*.35;g.moveTo(cx+m*k,cy-l);g.lineTo(cx+m*k,cy+l);g.moveTo(cx-m*k,cy-l);g.lineTo(cx-m*k,cy+l);g.moveTo(cx-l,cy+m*k);g.lineTo(cx+l,cy+m*k);if(m<6){g.moveTo(cx-l,cy-m*k);g.lineTo(cx+l,cy-m*k)}}g.stroke()}
  g.strokeStyle='#000';g.lineWidth=5;g.beginPath();g.moveTo(cx-k*8,cy);g.lineTo(cx-W,cy);g.moveTo(cx+k*8,cy);g.lineTo(cx+W,cy);g.moveTo(cx,cy+k*8);g.lineTo(cx,cy+H);g.stroke();
- g.save();g.beginPath();g.rect(0,0,W,H);g.arc(cx,cy,W/2-4,0,7,true);g.fillStyle='#050505';g.fill('evenodd');g.restore();
+ g.save();g.beginPath();g.rect(0,0,W,H);g.moveTo(cx+W/2-4,cy);g.arc(cx,cy,W/2-4,0,Math.PI*2,true);g.fillStyle='#050505';g.fill('evenodd');g.restore();
  g.strokeStyle='#222';g.lineWidth=6;g.beginPath();g.arc(cx,cy,W/2-4,0,7);g.stroke();
  const fa=1-(now-G.kt)/140;if(fa>0){g.fillStyle='rgba(255,255,255,'+fa*.35+')';g.beginPath();g.arc(cx,cy,W/2-4,0,7);g.fill()}
  const el=(now-G.t0)/1000,rem=G.S.time?Math.max(0,G.S.time-el):el;
  $('g_sc').textContent=G.sc;$('g_tm').textContent=Math.floor(rem/60)+':'+String(Math.floor(rem%60)).padStart(2,'0');$('g_sh').textContent=G.shots+'/'+G.S.sh;$('g_st').textContent='×'+(1+Math.min(1,G.stk*.1)).toFixed(1);
- $('g_ev').textContent=(ST.ses.ev>=0?'↑ ':'↓ ')+Math.abs(ST.ses.ev)+' klik';$('g_wv').textContent=(ST.ses.wv>=0?'→ ':'← ')+Math.abs(ST.ses.wv)+' klik';$('g_zm').textContent=['6x','12x','18x','24x'][G.zoom];
+ $('g_ev').textContent=(ST.ses.ev>=0?'↑ ':'↓ ')+Math.abs(ST.ses.ev);$('g_wv').textContent=(ST.ses.wv>=0?'→ ':'← ')+Math.abs(ST.ses.wv);$('g_zm').textContent=['6x','12x','18x','24x'][G.zoom];
  if($('gmsg').textContent!==G.msg)$('gmsg').textContent=G.msg}
 $('gz1').onclick=()=>{if(G&&G.zoom>0){G.zoom--;ST.ui.zoom=G.zoom;save()}};$('gz2').onclick=()=>{if(G&&G.zoom<3){G.zoom++;ST.ui.zoom=G.zoom;save()}};
 $('gz').onclick=()=>$('z').onclick();$('gtst').onclick=()=>fire(performance.now());$('gend').onclick=()=>endGame('Peli keskeytetty.');
