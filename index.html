@@ -2,112 +2,178 @@
 <html lang="fi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kuivaharjoittelu</title>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1d6b4f">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1113">
 <style>
-:root{--bg:#fafaf7;--fg:#17201c;--mut:#5f6b65;--card:#fff;--soft:#eef2ef;--acc:#1d6b4f;--onacc:#fff;--bad:#c0392b;--ok:#2e9e6b;--warn:#c98a00;--line:#dde3df;--r:16px;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101412;--fg:#eef2ef;--mut:#9aa6a0;--card:#1a201d;--soft:#242b27;--acc:#5fc79a;--onacc:#06251a;--bad:#f2766d;--ok:#5fc79a;--warn:#e0b04a;--line:#313a35}}
+:root,:root[data-theme="dark"]{color-scheme:dark;--bg:#0b100e;--bg2:#1a2a22;--card:#17211c;--soft:#1d2a23;--line:#22302a;--fg:#e9ede8;--mut:#8fa095;--acc:#f0b84e;--onacc:#1a1300;--ok:#4cc38a;--warn:#e8863a;--bad:#ef5b4f;--r:14px;--shadow:inset 0 1px 0 rgba(255,255,255,.04);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+:root[data-theme="light"]{color-scheme:light;--bg:#f2f1ec;--bg2:#fbfaf6;--card:#fff;--soft:#ebe9e1;--line:#d8d5c9;--fg:#15191c;--mut:#5b656d;--acc:#b36a00;--onacc:#fff;--ok:#1d8a5b;--warn:#b35a00;--bad:#c0392b;--shadow:0 1px 2px rgba(0,0,0,.06)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 16px calc(84px + env(safe-area-inset-bottom,0px));max-width:560px;margin-inline:auto;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(120% 70% at 50% 0%,var(--bg2) 0%,var(--bg) 62%) fixed var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 16px calc(84px + env(safe-area-inset-bottom,0px));max-width:560px;margin-inline:auto;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
 [hidden]{display:none!important}
-header{padding:10px 0 4px}#hdt{font-size:26px;font-weight:700;letter-spacing:-.3px}
-h2{font-size:20px;margin:12px 0 8px}h3{font-size:13px;margin:18px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+header{padding:12px 0 6px}.brand{display:flex;align-items:center;gap:10px}.brand svg{width:30px;height:30px;stroke:var(--acc);fill:none;stroke-width:1.8;stroke-linecap:round;flex:0 0 auto}.brand svg .d{fill:var(--acc);stroke:none}
+#hdt{font-size:24px;font-weight:700;letter-spacing:-.3px}
+h2{font-size:20px;margin:12px 0 8px}h3{font-size:12px;margin:20px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.9px;font-weight:700}
 p{margin:6px 0}.m{color:var(--mut);font-size:14px}
-button,select,input{font:inherit;color:var(--fg)}
-button{min-height:48px;padding:10px 14px;border:0;border-radius:14px;background:var(--acc);color:var(--onacc);font-weight:600;cursor:pointer}
-button.s{background:var(--soft);color:var(--fg)}button.big{width:100%;min-height:56px;font-size:18px;margin-top:10px}
-button.lnk{background:none;color:var(--acc);min-height:40px;padding:6px 0;font-weight:600}
+button,select,input,textarea{font:inherit;color:var(--fg)}
+button{min-height:48px;padding:10px 14px;border:0;border-radius:12px;background:var(--acc);color:var(--onacc);font-weight:700;cursor:pointer;transition:transform .08s,opacity .15s}
+button:active:not(:disabled){transform:scale(.98)}
+button.s{background:var(--soft);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}button.big{width:100%;min-height:56px;font-size:18px;margin-top:10px;letter-spacing:.2px}
+button.lnk{background:none;color:var(--acc);min-height:36px;padding:4px 0;margin-top:2px;font-weight:600;box-shadow:none}
 button:disabled{opacity:.4}button.warn{color:var(--bad)}
-select,input[type=number],input[type=text]{width:100%;min-height:46px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
-input[type=range]{width:100%}input[type=checkbox]{width:20px;height:20px;vertical-align:-4px;margin-right:8px}
+select,input[type=number],input[type=text],textarea{width:100%;min-height:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
+textarea{font-size:13px;min-height:0}
+input[type=range]{width:100%;accent-color:var(--acc)}input[type=checkbox]{width:20px;height:20px;vertical-align:-4px;margin-right:8px;accent-color:var(--acc)}
 .row{display:flex;gap:10px;margin:10px 0}.row>*{flex:1}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0}
-details.card>summary{font-weight:600;cursor:pointer}
-.lbl{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:6px}
-.fld{margin:12px 0}label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
-.q{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-height:0;padding:0;border-radius:11px;font-size:13px;background:var(--soft);color:var(--fg);vertical-align:middle}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;box-shadow:var(--shadow)}
+details.card>summary,details>summary{font-weight:600;cursor:pointer}
+.lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin-bottom:6px}
+.fld{margin:10px 0}label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+.q{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-height:0;padding:0;border-radius:11px;font-size:13px;background:var(--soft);color:var(--mut);vertical-align:middle;box-shadow:none}
 .hp{background:var(--soft);border-radius:10px;padding:10px;margin-top:6px;font-size:14px;color:var(--fg)}
 canvas{width:100%;display:block;aspect-ratio:1/1}#c3{aspect-ratio:3/2}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
-.chip{padding:6px 11px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:500}
-.chip::before{content:'●';margin-right:6px;color:var(--mut)}.chip.ok::before{color:var(--ok)}.chip.warn::before{color:var(--warn)}.chip.bad::before{color:var(--bad)}
-.dots{display:flex;gap:6px;margin:8px 0}.dots span{height:8px;width:8px;border-radius:4px;background:var(--line)}.dots span.on{width:26px;background:var(--acc)}
-.bar,.lvlbar{height:10px;background:var(--soft);border-radius:5px;overflow:hidden;margin:12px 0}.bar i,.lvlbar i{display:block;height:100%;width:0;background:var(--acc)}
-.turrets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-.tur{background:var(--soft);border-radius:14px;padding:10px;text-align:center}.tur span{font-size:13px;color:var(--mut)}.tur b{display:block;font-size:40px;line-height:1.1;font-variant-numeric:tabular-nums}.tur i{font-size:13px;color:var(--mut);font-style:normal}
-#rs{font-size:30px;font-weight:800;letter-spacing:-.5px}
-.sp{display:flex;align-items:center;gap:6px;margin:8px 0}.sp>span{flex:0 0 82px;font-size:14px;color:var(--mut)}.sp b{flex:1;text-align:center;font-size:18px;font-variant-numeric:tabular-nums}.sp button{flex:0 0 46px;min-height:44px;padding:8px 0}
-#lv{height:6px;background:var(--fg);border-radius:3px;margin:12px auto;width:70%}
-.gi{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:8px 0;cursor:pointer}.gi.on{border:2px solid var(--acc)}.gi span{color:var(--acc);font-size:13px;font-weight:600}
-.seg{display:flex;background:var(--soft);border-radius:14px;padding:4px;margin:8px 0}.seg button{flex:1;background:none;color:var(--mut);min-height:42px}.seg button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.g b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.g span{font-size:12px;color:var(--mut)}
-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}th,td{padding:6px 2px;text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:500}tr.hl{background:var(--soft);font-weight:700}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:4}
-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:8px 2px;min-height:60px}nav button.on{color:var(--acc)}
+.chip{padding:5px 11px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:500}
+.chip::before{content:'';display:inline-block;width:8px;height:8px;border-radius:4px;margin-right:7px;background:var(--mut)}
+.chip.ok::before{background:var(--ok);box-shadow:0 0 6px var(--ok)}.chip.warn::before{background:var(--warn)}.chip.bad::before{background:var(--bad);box-shadow:0 0 6px var(--bad)}
+.dots{display:flex;gap:6px;margin:8px 0}.dots span{height:6px;width:6px;border-radius:3px;background:var(--line)}.dots span.on{width:26px;background:var(--acc)}
+.bar,.lvlbar{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin:12px 0}.bar i,.lvlbar i{display:block;height:100%;width:0;background:var(--acc)}
+.turrets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tur{background:#0a0c0d;border:1px solid var(--line);border-radius:12px;padding:10px 8px 12px;text-align:center;position:relative;overflow:hidden;color:#e8ecef}
+.tur::before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,255,255,.14) 3px 4px)}
+.tur span{font-size:12px;color:#8f9ba5;text-transform:uppercase;letter-spacing:.9px;display:block;margin-top:6px}
+.tur b{display:block;font-size:42px;line-height:1.1;font-weight:700;color:#f2b233;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root[data-theme="light"] .tur b{color:#f2b233}
+.tur i{font-size:12px;color:#8f9ba5;font-style:normal}
+#rs{font-size:28px;font-weight:800;letter-spacing:-.4px}
+.sp{display:flex;align-items:center;gap:4px;margin:8px 0}.sp>span{flex:0 0 64px;font-size:14px;color:var(--mut)}.sp b{flex:1;min-width:0;text-align:center;font-size:17px;white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.sp button{flex:0 0 40px;min-height:44px;padding:8px 0;font-size:15px}
+#lv{height:5px;background:var(--acc);border-radius:3px;margin:12px auto;width:70%}
+.gi{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:8px 0;cursor:pointer}.gi.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}.gi span{color:var(--acc);font-size:13px;font-weight:700}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:4px;margin:8px 0}.seg button{flex:1;background:none;color:var(--mut);min-height:42px;box-shadow:none}.seg button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.g b{display:block;font-size:20px;font-family:ui-monospace,Menlo,Consolas,monospace}.g span{font-size:12px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 2px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}tr.hl{background:var(--soft);font-weight:700}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:4}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:0;background:none;color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.3px;padding:9px 2px;min-height:62px;box-shadow:none}nav button.on{color:var(--acc)}
 nav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 body.run nav,body.run header{display:none}
-textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:9px;font:inherit;font-size:13px;color:var(--fg)}
 .rgrid{display:grid;gap:10px}@media(min-width:760px){body.remote{max-width:1100px}.rgrid{grid-template-columns:1fr 1fr;align-items:start}}
 #lk_qr{background:#fff;border-radius:12px;image-rendering:pixelated;margin:10px 0}
-#ob{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
-#ob>div{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%}
+#sg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}#sg .ob{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%}
+#ob{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+#ob>div{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%}
 .stg{display:grid;gap:0}.stg .gi{margin:4px 0}
 #gc{width:100%;aspect-ratio:1/1;border-radius:var(--r);background:#000;touch-action:none}
-.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:6px 0}.hud div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 2px}.hud b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.hud span{font-size:11px;color:var(--mut);text-transform:uppercase}
-#g_ev,#g_wv,#g_zm{white-space:nowrap;min-width:54px;text-align:center}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin:6px 0}.hud div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 2px}.hud b{display:block;font-size:20px;font-family:ui-monospace,Menlo,Consolas,monospace}.hud span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+#g_ev,#g_wv,#g_zm{white-space:nowrap;min-width:44px;text-align:center}
 #gmsg{min-height:44px;font-size:16px;font-weight:600}
+.cta{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom,0px));padding:14px 0 6px;background:linear-gradient(rgba(0,0,0,0),var(--bg) 38%);z-index:3}.cta .big{margin-top:0;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+@font-face{font-family:'Barlow Condensed';font-weight:600;src:local('Barlow Condensed SemiBold'),local('BarlowCondensed-SemiBold'),url('fonts/BarlowCondensed-SemiBold.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-weight:400;src:local('Barlow'),local('Barlow-Regular'),url('fonts/Barlow-Regular.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-weight:600;src:local('Barlow SemiBold'),local('Barlow-SemiBold'),url('fonts/Barlow-SemiBold.woff2') format('woff2')}
+:root{--fh:'Barlow Condensed','Roboto Condensed','Arial Narrow',sans-serif-condensed,system-ui,sans-serif}
+body{font-family:'Barlow',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#hdt,h2,.h,.h2,.lbl{font-family:var(--fh)}#hdt,h2,.h{text-transform:uppercase;letter-spacing:.06em}
+.h{font-weight:600;font-size:24px;line-height:1.15}.h.big{font-size:32px}.h2{font-weight:600;font-size:22px;line-height:1.2;margin:4px 0 6px}
+header{display:flex;align-items:center;justify-content:space-between}
+.strk{font-size:13px;font-weight:600;color:var(--acc);padding:4px 10px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--line)}
+.r{display:flex;align-items:center;justify-content:space-between;gap:10px}
+button.p{background:linear-gradient(180deg,#f5c35e,#e3a83c);color:#1a1300;font-family:var(--fh);font-size:22px;text-transform:uppercase;letter-spacing:.1em;min-height:60px;width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(227,168,60,.25)}
+button.p.big{margin-top:12px}button.p:disabled{opacity:.45}
+button.g{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}button.sm{min-height:36px;padding:6px 12px;font-size:14px}
+.hero{padding:0;overflow:hidden;position:relative}.hero .land{display:block;width:100%;height:150px}.hero .hb{padding:14px 16px 4px}.hero>button{width:calc(100% - 32px);margin:8px 16px 16px}
+.safe{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ok);margin-top:8px}.safe::before{content:'';width:8px;height:8px;border-radius:4px;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.prog{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin:8px 0}.prog i{display:block;height:100%;background:linear-gradient(90deg,#e3a83c,#f5c35e);border-radius:4px}
+.pill{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.5);font-size:13px;font-weight:600;color:var(--fg)}.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+.mh{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mut);padding:10px 2px}.mh b{font-family:var(--fh);font-size:18px;color:var(--fg);text-transform:uppercase;letter-spacing:.06em}
+.scope{position:relative;padding:8px;background:radial-gradient(circle at 50% 40%,#10201a,#070b09)}.pills{position:absolute;left:14px;right:14px;bottom:14px;display:flex;justify-content:space-between;gap:6px}
+.prompt{text-align:center;color:var(--mut);margin:10px 0}
+.st3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.st3 .card{margin:0;text-align:center;padding:10px 6px}.st3 b{display:block;font-family:var(--fh);font-size:26px;font-weight:600}.st3 span{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.st3 i{display:block;font-style:normal;font-size:12px;color:var(--ok)}
+.ringw{position:relative;width:180px;margin:10px auto}.ringw svg{width:100%}.rg{fill:none;stroke:var(--line);stroke-width:10}.rp{fill:none;stroke:var(--acc);stroke-width:10;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset .3s}.rt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--fh);font-size:20px;text-transform:uppercase;letter-spacing:.06em;padding:0 28px}
+.scr{display:flex;align-items:baseline;gap:8px}.scr b{font-family:var(--fh);font-size:56px;font-weight:600;color:var(--acc)}.scr span{color:var(--mut);font-size:20px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--acc);color:var(--acc);font-size:13px;font-weight:600;margin:4px 6px 0 0}
+.gi.lock{opacity:.5}.big2{font-size:18px;font-weight:600;margin-top:0}
+.bkh{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin:12px 0 4px}
+.bkr{display:grid;grid-template-columns:84px 1fr;gap:2px 10px;align-items:center;margin:10px 0;font-size:14px}.bkr>span{font-weight:600}
+.bkr i{display:block;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}.bkr i b{display:block;height:100%;background:var(--ok);border-radius:4px}.bkr i b.warn{background:var(--warn)}.bkr i b.bad{background:var(--bad)}
+.bkr em{grid-column:1/3;font-style:normal;color:var(--mut);font-size:13px}.bkv{font-size:14px;margin:8px 0 0}
 </style></head><body>
-<header><div id="hdt">Harjoittele</div></header>
+<header><div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 1.5v5.5M12 17v5.5M1.5 12H7M17 12h5.5"/><path d="M9 12h.01M15 12h.01M12 9h.01M12 15h.01" stroke-width="2.4"/><circle class="d" cx="12" cy="12" r="1.2"/></svg><div id="hdt">Kaukolaukaus</div></div><span id="hstreak" class="strk"></span></header>
 <main>
 
 <section id="t_train">
  <div id="p_setup">
-  <div class="card"><div class="lbl">Pelitila</div><div class="stg" id="stg"></div></div>
-  <div class="card"><div class="lbl">Varuste</div><select id="su_psel"></select><p class="m" id="su_psum"></p><button class="lnk" id="su_edit">Muokkaa varustetta</button></div>
-  <div class="card"><div class="lbl">Olosuhteet</div><p id="su_wx" style="font-size:18px;font-weight:600;margin-top:0"></p>
+  <div class="card hero"><svg class="land" viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27402f"/><stop offset="1" stop-color="#cfa95a" stop-opacity=".55"/></linearGradient></defs><rect width="360" height="150" fill="url(#sky)"/><path d="M0 98 Q60 70 120 90 T240 84 T360 92 V150 H0Z" fill="#16241c"/><path d="M0 116 Q90 98 180 112 T360 108 V150 H0Z" fill="#0f1a14"/><g fill="#0a120e"><path d="M30 118l8-26 8 26zM52 120l7-22 7 22zM300 114l8-26 8 26zM322 118l7-22 7 22z"/></g><rect x="226" y="82" width="3" height="16" fill="#8fa095"/><circle cx="227.5" cy="80" r="7" fill="none" stroke="#f0b84e" stroke-width="2"/><circle cx="227.5" cy="80" r="2" fill="#f0b84e"/><path d="M52 60l24 -6v10z" fill="#f0b84e" opacity=".9"/><rect x="50" y="56" width="2" height="40" fill="#8fa095"/></svg><div class="hb"><div class="lbl">Päivän haaste</div><div class="h big" id="k_dt"></div><p class="m" id="k_ds" style="margin:2px 0 0"></p><div class="safe">Ase on tyhjä ja turvallinen</div></div>
+   <button id="startb" class="p">Aloita</button></div>
+  <div class="card"><div class="r"><div><div class="lbl">Varuste</div><b id="k_gn"></b><div class="m" id="su_psum"></div></div><button class="s sm" id="k_edit">Muokkaa</button></div></div>
+  <div class="card"><div class="lbl">Olosuhteet</div><p id="su_wx" class="big2"></p>
    <div class="row"><button id="wxb" class="s">Hae sää</button><button id="wxstd" class="s">Vakioilmakehä</button></div><p class="m" id="wxs"></p>
    <details><summary class="m">Muokkaa käsin</summary><div data-form="wx" id="wf"></div></details></div>
-  <div class="card"><div class="lbl">Maali ja harjoitustila</div>
+  <div class="card"><div class="lbl">Tämä viikko</div><p id="k_wk" class="m" style="margin-top:0"></p>
+   <div class="r"><b id="k_lv"></b><span class="m" id="k_xp"></span></div><div class="prog"><i id="k_xb"></i></div><p class="m" id="k_cap" style="margin:0"></p></div>
+  <button class="g big" id="k_free" style="width:100%;margin-top:10px">Vapaa harjoitus (mukauta)</button>
+ </div>
+
+ <div id="p_custom" hidden>
+  <button class="lnk" id="cust_back">← Takaisin</button><h2>Vapaa harjoitus</h2>
+  <div class="card"><div class="lbl">Maali</div>
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
-   <div data-form="ses" id="sf1"></div><div class="hp" id="su_tgt" style="margin-top:12px"></div></div>
+   <div class="hp" id="su_tgt" style="margin-top:8px"></div>
+   <details style="margin-top:10px"><summary class="m">Taulun koko, oikean maalin etäisyys ja elevaation säätö</summary><div data-form="ses" id="sf1"></div></details></div>
   <div class="card"><div class="lbl">Tuuli</div><div data-form="ses" id="sf2"></div></div>
   <details class="card"><summary>Laukaisun tunnistus (edistynyt)</summary><div data-form="ses" id="sf3"></div></details>
-  <button id="startb" class="big">Aloita harjoitus</button>
+  <div class="cta"><button id="startc" class="p">Aloita harjoitus</button></div>
  </div>
 
  <div id="p_prep" hidden>
   <div class="dots" id="dots"></div><h2 id="stt"></h2>
-  <div id="s0" class="card"><p><b>Ase on aina tyhjä ja lipas pois.</b> Elävät patruunat säilytetään toisessa tilassa.</p><p>Kiinnitä puhelin jäykästi aseeseen: näyttö ylöspäin ja yläreuna piipun suuntaan. Muut asennot valitaan kohdassa Asetukset → Anturit.</p><button class="lnk" id="skipall">Ohita opastus</button></div>
-  <div id="s1" class="card" hidden><p>Aseta ase tuelle tai säkille ja pidä se täysin paikallaan 5 sekuntia. Sovellus mittaa gyron nollavirheen, jotta tähtäyspiste ei ajautuisi.</p>
-   <button id="go" class="big">Käynnistä anturit ja kalibroi</button><div class="bar"><i id="gbar"></i></div><p id="st" class="m"></p><button class="lnk" id="skipcal">Ohita kalibrointi</button></div>
-  <div id="s2" class="card" hidden><p>Säädä oikea kiikari nollaukseensa ja pidä ase vaakasuorassa. Tähtää pieneen, tarkkaan merkkiin (25–50 m on hyvä) ja paina Nollaa.</p>
-   <button id="z" class="big">Nollaa tähtäyspiste</button><p id="zst" class="m"></p></div>
-  <div id="s3" class="card" hidden><p>Mikrofoni havaitsee kuivalaukauksen napsahduksen. Napsauta tyhjää asetta ja säädä herkkyys niin, että palkki ylittää keskikohdan.</p>
+  <div id="s0" class="card"><p><b>Ase on aina tyhjä ja lipas pois.</b></p><p>Kiinnitä puhelin jäykästi aseeseen: näyttö ylöspäin ja yläreuna piipun suuntaan. Muut asennot valitaan kohdassa Asetukset → Anturit.</p><button class="p" id="s0n">Selvä, jatka</button><button class="lnk" id="skipall" style="width:100%">Ohita opastus</button></div>
+  <div id="s1" class="card" hidden><p>Kohdista ase maalitaulua kohti ja pidä se täysin paikallaan (tuella), kun rengas täyttyy. Tästä asennosta tulee tähtäyksen nollapiste.</p>
+   <div class="ringw"><svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" class="rg"/><circle id="ringp" cx="80" cy="80" r="70" class="rp" transform="rotate(-90 80 80)"/></svg><div class="rt" id="ringt">Ei vielä aloitettu</div></div>
+   <button id="go" class="s big">Aloita kalibrointi</button><div class="bar" hidden><i id="gbar"></i></div><p id="st" class="m"></p>
+   <button id="z" class="p big" disabled>Vahvista nollapiste</button><p id="zst" class="m"></p><button class="lnk" id="skipcal" style="width:100%">Ohita toistaiseksi</button></div>
+  <div id="s2" class="card" hidden><p>Mikrofoni havaitsee kuivalaukauksen napsahduksen. Napsauta tyhjää asetta ja säädä herkkyys niin, että palkki ylittää keskikohdan.</p>
    <button id="mic" class="big s">Mikrofoni päälle</button><div class="lvlbar"><i id="lvl"></i></div>
    <label>Herkkyys (pieni = herkkä)</label><input id="thr" type="range" min="1" max="100"><p id="ms0" class="m"></p>
-   <button class="lnk" id="skipmic">Ohita mikrofoni (käytän testilaukausta)</button></div>
+   <button class="lnk" id="skipmic" style="width:100%">Ohita mikrofoni (käytän testilaukausta)</button></div>
   <div class="row"><button id="pb" class="s">Takaisin</button><button id="pn">Seuraava</button></div>
  </div>
 
  <div id="p_shoot" hidden>
-  <div class="chips"><span class="chip" id="c_sen"></span><span class="chip" id="c_gy"></span><span class="chip" id="c_mic"></span><span class="chip" id="c_z"></span><span class="chip" id="c_lk"></span></div>
-  <p class="m" id="ms"></p>
-  <div class="card"><canvas id="rc" width="640" height="640"></canvas>
-   <div class="sp"><span>Mittakaava</span><select id="sc"><option>2</option><option selected>5</option><option>10</option><option>20</option><option>50</option></select></div>
-   <p class="m" id="ex"></p><div id="lv"></div><p class="m" style="text-align:center;margin-top:0">Kallistus</p></div>
-  <div class="card"><div id="rs">Valmiina</div>
-   <div class="turrets"><div class="tur"><span>Elevaatio (klik)</span><b id="cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="cW">–</b><i>klikkiä</i></div></div>
-   <p id="rd" class="m"></p><canvas id="tc" width="640" height="640"></canvas></div>
-  <div class="card">
+  <div class="mh"><span id="m_l"></span><b id="m_c"></b><span id="m_r"></span></div>
+  <div class="card scope"><canvas id="rc" width="640" height="640"></canvas><div class="pills"><span class="pill" id="m_stab"></span><span class="pill" id="m_wind" hidden></span></div></div>
+  <p class="prompt" id="m_pr"></p>
+  <details class="card"><summary>Tornit, tila ja tekniset tiedot</summary>
+   <div class="chips" style="margin-top:8px"><span class="chip" id="c_sen"></span><span class="chip" id="c_gy"></span><span class="chip" id="c_mic"></span><span class="chip" id="c_z"></span><span class="chip" id="c_lk"></span></div><p class="m" id="ms"></p>
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
    <div class="sp"><span>Elevaatio</span><button class="s" data-a="ev:-10">−10</button><button class="s" data-a="ev:-1">−1</button><b id="v_ev"></b><button class="s" data-a="ev:1">+1</button><button class="s" data-a="ev:10">+10</button></div>
-   <div class="sp"><span>Tuuli (klik)</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="v_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div>
-   <p class="m" id="hint"></p><p class="m" id="tgt2"></p></div>
-  <div class="row"><button id="z2" class="s">Nollaa uudelleen</button><button id="rep" class="s">Näytä jälki</button></div>
-  <div class="row"><button id="tst" class="s">Testilaukaus</button><button id="endb" class="s">Lopeta harjoitus</button></div>
+   <div class="sp"><span>Tuuli</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="v_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div>
+   <p class="m" id="hint"></p><p class="m" id="tgt2"></p>
+   <div class="sp"><span>Mittakaava</span><select id="sc"><option>2</option><option selected>5</option><option>10</option><option>20</option><option>50</option></select></div>
+   <p class="m" id="ex"></p><div id="lv"></div><p class="m" style="text-align:center;margin-top:0">Kallistus</p>
+   <div class="row"><button id="z2" class="s">Nollaa uudelleen</button><button id="rep" class="s">Näytä jälki</button></div>
+   <div class="row"><button id="tst" class="s">Testilaukaus</button></div></details>
+  <button id="endb" class="g big" style="width:100%">Lopeta</button>
  </div>
 
- <div id="p_sum" hidden><h2>Harjoitus valmis</h2><div class="card" id="sum1"></div>
-  <button id="newb" class="big">Uusi harjoitus</button><button id="toRes" class="big s">Katso tulokset</button></div>
+ <div id="p_ana" hidden>
+  <div class="mh"><span class="lbl" id="an_k"></span><span></span></div><div class="h big" id="an_r"></div>
+  <div class="card"><div class="lbl">Tämän laukauksen oppi</div><div class="h2" id="an_t"></div><p id="an_b" style="margin:0"></p></div>
+  <div class="card"><canvas id="an_tr" width="640" height="640"></canvas><button class="g" id="an_rp" style="width:100%;margin-top:8px">Toista hidastettuna</button></div>
+  <div class="st3"><div class="card"><b id="an_s1"></b><span>Vakaus</span></div><div class="card"><b id="an_s2"></b><span>Nykäys</span></div><div class="card"><b id="an_s3"></b><span>Tuuli</span></div></div>
+  <details class="card"><summary>Näytä erittely</summary><div id="rs" style="margin-top:8px"></div>
+   <div class="turrets"><div class="tur"><span>Elevaatio</span><b id="cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="cW">–</b><i>klikkiä</i></div></div>
+   <p id="rd" class="m"></p><div id="bk"></div><canvas id="tc" width="640" height="640"></canvas></details>
+  <button class="p big" id="an_next">Seuraava laukaus</button>
+ </div>
+
+ <div id="p_sum" hidden>
+  <div class="lbl" id="sm_k" style="margin-top:12px"></div><h2 style="margin-top:2px">Sessio valmis</h2>
+  <div class="card"><div class="scr"><b id="sm_sc"></b><span id="sm_mx"></span></div><p class="m" id="sm_rec" style="margin:0"></p><div id="sm_bars"></div></div>
+  <div class="card"><b id="sm_xp"></b><div id="sm_bg"></div></div>
+  <div class="st3"><div class="card"><b id="sm_nyk"></b><span>Nykäys</span><i id="sm_nykd"></i></div><div class="card"><b id="sm_haj"></b><span>Hajonta</span></div><div class="card"><b id="sm_st"></b><span>Vakaus</span></div></div>
+  <div class="card"><div class="lbl">Session oppi</div><p id="sm_lr" style="margin:0"></p></div>
+  <button class="p big" id="newb">Uusi sessio</button>
+  <div class="row"><button class="g" id="shareb">Jaa tulos</button><button class="g" id="toRes">Katso tulokset</button></div>
+ </div>
 
  <div id="p_game" hidden>
   <div class="hud"><div><b id="g_sc">0</b><span>Pisteet</span></div><div><b id="g_tm">–</b><span>Aika</span></div><div><b id="g_sh">0</b><span>Laukaukset</span></div><div><b id="g_st">×1.0</b><span>Putki</span></div></div>
@@ -128,7 +194,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
    <div>
     <div class="card"><div id="r_rs">Valmiina</div>
      <div class="turrets"><div class="tur"><span>Elevaatio</span><b id="r_cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="r_cW">–</b><i>klikkiä</i></div></div>
-     <p id="r_rd" class="m"></p><canvas id="rtc" width="640" height="640"></canvas></div>
+     <p id="r_rd" class="m"></p><div id="r_bk"></div><canvas id="rtc" width="640" height="640"></canvas></div>
     <div class="card">
      <div class="sp"><span>Matka</span><button class="s" data-ra="dist:-50">−50</button><b id="r_dist"></b><button class="s" data-ra="dist:50">+50</button></div>
      <div class="sp"><span>Elevaatio</span><button class="s" data-ra="ev:-10">−10</button><button class="s" data-ra="ev:-1">−1</button><b id="r_ev"></b><button class="s" data-ra="ev:1">+1</button><button class="s" data-ra="ev:10">+10</button></div>
@@ -141,37 +207,52 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
  </div>
 </section>
 
+<section id="t_chal" hidden>
+ <div class="seg"><button id="ch_d" class="on">Päivä</button><button id="ch_w">Viikko</button></div>
+ <div id="chal_d"><div class="card" id="ch_daily"></div><button id="ch_dgo" class="p">Aloita päivän haaste</button>
+  <h3>Kentät</h3><div id="ch_stages"></div>
+  <div class="card"><div class="lbl">Kisat ja kaverit</div><p class="m" style="margin:0">Tulossa: jaa päivän tulos kavereille. Sijoituslista vaatii verkkoyhteyden ja tulee myöhemmin vapaaehtoisena.</p></div></div>
+ <div id="chal_w" hidden><h3>Viikon haasteet</h3><div id="ch_week"></div></div>
+</section>
+
 <section id="t_gear" hidden>
+ <button class="lnk" id="gear_back">← Takaisin</button>
  <div id="plist"></div>
  <div class="row"><button id="pnew">Uusi varuste</button><button id="pdup" class="s">Kopioi</button></div>
  <div class="card"><div class="fld" style="margin-top:0"><label>Nimi</label><input id="pname" type="text"></div>
   <h3>Kiikari</h3><div data-form="prof" id="pf1"></div>
   <h3>Patruuna ja luoti</h3><div data-form="prof" id="pf2"></div></div>
- <details class="card"><summary>Lisää</summary>
+ <details class="card"><summary>Tiedosto ja poisto</summary>
   <div class="row"><button id="pex" class="s">Vie tiedostoon</button><label class="s" style="margin:0;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--soft);font-weight:600;color:var(--fg);font-size:16px">Tuo tiedostosta<input id="pim" type="file" accept=".json" hidden></label></div>
   <button id="pdel" class="s warn" style="width:100%">Poista varuste</button></details>
 </section>
 
 <section id="t_res" hidden>
- <div class="seg"><button id="rt_h" class="on">Historia</button><button id="rt_d">Dope</button></div>
- <div id="res_h"><h3>Nykyinen sarja</h3><div class="card" id="hs1"></div><h3>Koko historia</h3><div class="card" id="hs2"></div><div class="card" id="hs3"></div>
+ <div class="seg"><button id="rt_o" class="on">Yleiskatsaus</button><button id="rt_h">Historia</button><button id="rt_d">Dope</button></div>
+ <div id="res_o"></div>
+ <div id="res_h" hidden><h3>Nykyinen sarja</h3><div class="card" id="hs1"></div><h3>Koko historia</h3><div class="card" id="hs2"></div><div class="card" id="hs3"></div>
   <div class="row"><button id="hcsv" class="s">Vie CSV</button><button id="hclr" class="s warn">Tyhjennä</button></div></div>
  <div id="res_d" hidden><div class="card"><div class="row" style="margin-top:0"><span class="m" style="align-self:center">Matkaväli</span><select id="dstep"><option value="50">50 m</option><option value="100">100 m</option></select></div><div id="dp2"></div>
   <p class="m">Elevaatio on ylös-klikkejä nollauksesta. Tuuli: korjaus 3 m/s täydelle tuulelle (90°). Vertaa oikeaan ballistiikkalaskuriin.</p></div></div>
 </section>
 
 <section id="t_set" hidden>
+ <h3>Vaikeustaso</h3><div class="card"><div class="seg"><button id="df_b" class="on">Aloittelija</button><button id="df_x">Asiantuntija</button></div>
+  <p class="m">Aloittelija: apuviivat, tuulinuoli, automaattinen elevaatio ja isompi maali. Asiantuntija: vain tuuli ja etäisyys, kaikki matkat auki.</p>
+  <label style="margin:8px 0"><input id="tg_wi" type="checkbox">Tuulinuoli</label><label style="margin:8px 0"><input id="tg_aid" type="checkbox">Apuviivat</label><label style="margin:8px 0"><input id="tg_hap" type="checkbox">Haptinen palaute</label><label style="margin:8px 0"><input id="tg_remind" type="checkbox">Muistuta "Ase on tyhjä" ennen sessiota</label></div>
+ <h3>Laitteet</h3><div class="card"><div class="r"><span>Kiinnike</span><span class="m" id="set_cal" style="text-align:right"></span></div><button id="set_recal" class="s" style="width:100%;margin:8px 0">Kalibroi uudelleen</button><div class="r"><span>Valmentajalaite</span><span class="m" id="set_lk"></span></div></div>
  <h3>Äänet</h3><div class="card"><select id="snd"><option value="both">Merkkiääni ja puhe</option><option value="beep">Vain merkkiääni</option><option value="off">Ei ääntä</option></select>
   <div class="row"><button id="sndt" class="s">Testaa ääni</button></div><p class="m" id="sndm">Korkea kaksoisääni = osuma, matala = ohi.</p></div>
- <h3>Näyttö</h3><div class="card"><label style="margin:0"><input id="hintc" type="checkbox">Näytä dope-vihje ampuessa</label></div>
+ <h3>Näyttö</h3><div class="card"><label>Teema</label><select id="theme"><option value="dark">Tumma (oletus)</option><option value="light">Vaalea (ulkokäyttö)</option><option value="auto">Laitteen asetuksen mukaan</option></select><label style="margin:12px 0 0"><input id="hintc" type="checkbox">Näytä dope-vihje ampuessa</label></div>
  <h3>Anturit</h3><div class="card">
   <label>Anturilähde</label><select id="src"><option value="own">Oma fuusio (gyro + kiihtyvyys)</option><option value="api">Sensor API (kvaternioni)</option><option value="do">deviceorientation</option></select>
   <label style="margin-top:10px">Näytön pehmennys</label><select id="sm"><option value="0">Ei</option><option value="1">Kevyt</option><option value="2">Vahva</option></select>
   <label style="margin-top:10px">Aseen eteen (piippulinja)</label><select id="fw"></select>
   <label style="margin-top:10px">Aseen ylä (kiikarin puoli)</label><select id="up"></select>
+  <details style="margin-top:12px"><summary class="m">Kehittäjätyökalut ja kalibrointi</summary>
   <div class="row"><button id="gbc" class="s">Kalibroi gyro</button><button id="dtb" class="s">Drift-testi</button></div><p class="m" id="gbm"></p>
   <div class="g" style="margin-top:10px"><div><span>Ylös/alas (mil)</span><b id="vp">0.00</b><span id="dp"></span></div><div><span>Vasen/oikea (mil)</span><b id="vy">0.00</b><span id="dy"></span></div><div><span>Kallistus (mil)</span><b id="vr">0.00</b><span id="dr"></span></div></div>
-  <canvas id="c3" width="720" height="480" style="margin-top:10px"></canvas></div>
+  <canvas id="c3" width="720" height="480" style="margin-top:10px"></canvas></details></div>
  <h3>Kaksi laitetta</h3><div class="card">
   <p class="m" id="lk_st">Ei yhteyttä. Toinen laite voi toimia näyttönä (esim. tabletti), kun anturilaite (puhelin) on aseessa.</p>
   <div class="row"><button id="lk_sens" class="s">Tämä on anturi (aseessa)</button><button id="lk_disp" class="s">Tämä on näyttö</button></div>
@@ -187,18 +268,20 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:v
  <h3>Ohje ja tiedot</h3><div class="card"><button id="obb" class="s" style="width:100%">Näytä opastus</button>
   <details style="margin-top:10px"><summary>Turvallisuus ja rajoitukset</summary><p class="m">Sovellus on harjoitusväline. Ase on aina tyhjä ja lipas pois. Laskenta perustuu G7-malliin, sääsyötteisiin ja puhelimen antureihin, eikä se korvaa oikeaa nollausta tai ballistiikkalaskuria. Coriolisia ei ole mukana.</p></details>
   <details><summary>Tietosuoja</summary><p class="m">Kaikki tiedot tallentuvat vain tähän laitteeseen. Mikrofonia käytetään vain napsahduksen havaitsemiseen, ääntä ei tallenneta. Sijaintia ja verkkoa käytetään vain, kun haet sään.</p></details>
-  <button id="rst" class="s warn" style="width:100%;margin-top:10px">Poista kaikki tiedot</button><p class="m">Versio 1.0 (peli)</p></div>
+  <button id="rst" class="s warn" style="width:100%;margin-top:10px">Poista kaikki tiedot</button><p class="m">Versio 0.9 beta</p></div>
 </section>
 </main>
 
 <nav id="nav">
- <button data-t="train" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Harjoittele</button>
- <button data-t="gear"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Varusteet</button>
- <button data-t="res"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Tulokset</button>
+ <button data-t="train" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Harjoitus</button>
+ <button data-t="chal"><svg viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0V4zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8"/></svg>Haasteet</button>
+ <button data-t="res"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Edistyminen</button>
  <button data-t="set"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Asetukset</button>
 </nav>
+<div id="sg" hidden><div class="ob"><h2 style="margin-top:0">Turvatarkastus</h2><p>Onko ase tyhjä ja lipas pois? Elävät patruunat ovat toisessa tilassa.</p><button id="sg_ok" class="p">Kyllä, ase on tyhjä</button><button id="sg_no" class="lnk" style="width:100%">Peruuta</button></div></div>
 <div id="ob" hidden><div><h2 id="obt" style="margin-top:0"></h2><p id="obx" style="font-size:16px"></p><div class="row"><button id="obs" class="s">Ohita</button><button id="obn">Seuraava</button></div></div></div>
 
+<div id="legacy" hidden><div id="stg"></div><div id="su_edit"></div><div id="su_psel"></div><div id="sum1"></div></div>
 <script>
 
 const $=id=>document.getElementById(id),D=Math.PI/180,MIL=1000;
@@ -223,6 +306,7 @@ const SF=[
  {id:'lk',l:'Tauko laukauksen jälkeen',u:'s',d:3,h:'Näin pitkään laukauksen jälkeen kaikki äänet ohitetaan (esim. aseen lataus). Pidennä, jos latausääni tulkitaan yhä laukaukseksi.'},
  {id:'sl',l:'Vakausraja ennen laukausta',u:'mil',d:6,h:'Napsahdus hyväksytään laukaukseksi vain, jos ase on pysynyt tätä rajaa vakaampana ennen ääntä. Latausäänet tulevat aseen liikkuessa, joten ne ohitetaan. Nosta arvoa, jos oikeita laukauksia ohitetaan. Laske, jos latausäänet menevät läpi. 0 poistaa tarkistuksen.'},
  {id:'sw',l:'Vakauden tarkastusaika',u:'s',d:1,h:'Kuinka pitkältä ajalta ennen ääntä aseen vakaus tarkistetaan (enintään 3 s).'},
+ {id:'er',l:'Elevaation säätö',o:[['v','Virtuaalinen torni (sovelluksessa)'],['r','Oikea kiikari (syötän klikit tähän)']],d:'v',h:'Virtuaalinen: käännät torneja sovelluksessa, oikea kiikari pysyy nollauksessa. Oikea kiikari: käännät oikean kiikarin elevaatiota ja syötät samat klikit sovellukseen, jotta virheen erittely osaa erottaa dopen tähtäyksestä.'},
  {id:'tm',l:'Harjoitustila',o:[['free','Vapaa'],['wind','Tuulenarvio: uusi tuuli joka laukauksen jälkeen'],['rng','Vaihtuva matka: uusi matka joka laukauksen jälkeen']],d:'free',h:'Vapaa: matka ja tuuli pysyvät, kunnes muutat niitä. Tuulenarvio vaatii tuulen tilaksi Satunnainen. Vaihtuva matka arpoo uuden matkan alla olevalta väliltä, ja sinun pitää korjata elevaatio sen mukaan.'},
  {id:'dmin',l:'Vaihtuvan matkan alaraja',u:'m',d:300,h:'Lyhin arvottava matka (askel 50 m).'},
  {id:'dmax',l:'Vaihtuvan matkan yläraja',u:'m',d:900,h:'Pisin arvottava matka (askel 50 m).'}];
@@ -230,10 +314,10 @@ const WF=[
  {id:'tc',l:'Lämpötila',u:'°C',d:15,h:'Ilman lämpötila ampumapaikalla.'},
  {id:'pr',l:'Ilmanpaine',u:'hPa',d:1013.25,h:'Käytä aseman painetta, ei merenpinnalle korjattua painetta. Sääpalvelun "merenpinnan paine" ei kelpaa ilman korjausta. Hae sää -painike käyttää asemapainetta.'},
  {id:'hu',l:'Ilmankosteus',u:'%',d:50,h:'Vaikutus on pieni. 50 % käy hyvin.'}];
-const DEF={ses:{dist:600,td:500,rd:25,wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,tm:'free',dmin:300,dmax:900,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,say:true,snd:'both',seen:false,step:100}};
+const DEF={ses:{dist:600,td:500,rd:25,er:'v',wm:'rnd',ws:3,wd:3,dl:80,lk:3,sl:6,sw:1,tm:'free',dmin:300,dmax:900,ev:0,wv:0,thr:25},wx:{tc:15,pr:1013.25,hu:50},ui:{src:'own',sm:'1',fw:'+Y',up:'+Z',hint:true,say:true,snd:'both',theme:'dark',diff:'b',wi:true,aid:true,hap:true,remind:true,ana:true,mounted:false,seen:false,step:100}};
 function defProfile(){const o={id:''+Date.now()+Math.random(),name:'Oletus (esimerkkiarvot)'};for(const f of PF)o[f.id]=f.d;return o}
-let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui},hist:[]};
-try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui},hist:Array.isArray(s.hist)?s.hist:[]}}}catch(e){}
+let ST={profiles:[defProfile()],active:0,ses:{...DEF.ses},wx:{...DEF.wx},ui:{...DEF.ui},hist:[],prog:{xp:0,streak:0,lastDay:'',best:{},claimed:{},sess:0}};
+try{const s=JSON.parse(localStorage.getItem('kh2')||'null');if(s&&Array.isArray(s.profiles)&&s.profiles.length){ST={profiles:s.profiles.map(p=>({...defProfile(),...p})),active:Math.min(s.active||0,s.profiles.length-1),ses:{...DEF.ses,...s.ses},wx:{...DEF.wx,...s.wx},ui:{...DEF.ui,...s.ui},hist:Array.isArray(s.hist)?s.hist:[],prog:{xp:0,streak:0,lastDay:'',best:{},claimed:{},sess:0,...(s.prog||{})}}}}catch(e){}
 const save=()=>{try{localStorage.setItem('kh2',JSON.stringify(ST))}catch(e){}};
 const prof=()=>ST.profiles[ST.active];
 const V=id=>{const p=prof();return +(id in p?p[id]:id in ST.wx?ST.wx[id]:ST.ses[id])};
@@ -241,7 +325,7 @@ const ckMil=()=>{const p=prof();return p.cu==='moa'?p.ck*.29089:p.cu==='mm'?p.ck
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function formHTML(F,obj,pre){return F.map(f=>{const v=obj[f.id];
  const inp=f.o?`<select data-k="${f.id}">${f.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${o[1]}</option>`).join('')}</select>`:`<input data-k="${f.id}" type="number" step="any" inputmode="decimal" value="${v}">`;
- return `<div class="fld"><label>${f.l}${f.u?' ('+f.u+')':''} <button class="q" data-h="${pre}${f.id}">?</button></label>${inp}<div class="hp" id="h_${pre}${f.id}" hidden>${f.h}</div></div>`}).join('')}
+ return `<div class="fld"><label>${f.l}${f.id==='ck'?' ('+({mil:'mil',moa:'MOA',mm:'mm / 100 m'}[obj.cu]||'mil')+')':(f.u?' ('+f.u+')':'')} <button class="q" data-h="${pre}${f.id}">?</button></label>${inp}<div class="hp" id="h_${pre}${f.id}" hidden>${f.h}</div></div>`}).join('')}
 
 let R=null,cur={p:0,y:0,r:0},z0={p:0,y:0,r:0},FV=[0,1,0],RV=[1,0,0],UV=[0,0,1],trail=[],n=0,hz=0,tH=performance.now();
 const wrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
@@ -428,7 +512,7 @@ function draw(){
  // reticle
  let c=$('rc'),g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H/2,S=+$('sc').value,k=(W/2-16)/S;
  g.clearRect(0,0,W,H);g.strokeStyle=line;g.lineWidth=2;
- for(let i=1;i<=S;i++){if(S>10&&i%5)continue;g.beginPath();g.arc(cx,cy,i*k,0,7);g.stroke()}
+ for(let i=1;i<=S&&ST.ui.aid!==false;i++){if(S>10&&i%5)continue;g.beginPath();g.arc(cx,cy,i*k,0,7);g.stroke()}
  g.strokeStyle=mut;g.beginPath();g.moveTo(0,cy);g.lineTo(W,cy);g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();
  const X=p=>cx+p[1]*k,Y=p=>cy-p[2]*k;
  const fz=frozen&&now<frozen.until,TR=fz?frozen.pts:trail;
@@ -468,14 +552,44 @@ function flight(P,el,az,wx,wz,Dm,dt=.001){
   s=ns;t+=dt;if(ns[3]<40)break}
  return null}
 function solveEl(P,d,dt=.002){let lo=-.02,hi=.25;for(let i=0;i<40;i++){const m=(lo+hi)/2,r=flight(P,m,0,0,0,d,dt);if(!r||r.y<P.h)lo=m;else hi=m}return(lo+hi)/2}
-function shot(dyMil,dzMil,roll,wnd){
- const P=params(),Dm=V('dist'),th0=solveEl(P,V('zd')),ckm=ckMil();
- const U=th0+ST.ses.ev*ckm/1000,Rr=ST.ses.wv*ckm/1000,c=Math.cos(roll),s=Math.sin(roll);
+function shotM(dyMil,dzMil,roll,wnd,evM,wvM){
+ const P=params(),Dm=V('dist'),th0=solveEl(P,V('zd'));
+ const U=th0+evM/1000,Rr=wvM/1000,c=Math.cos(roll),s=Math.sin(roll);
  const el=dyMil/1000+U*c-Rr*s,az=dzMil/1000+Rr*c+U*s;
  const th=(wnd.wd%12)*Math.PI/6,r=flight(P,el,az,-wnd.ws*Math.cos(th),-wnd.ws*Math.sin(th),Dm);
  if(!r)return null;
  const sg=V('sg'),sd=sg>0?1.25*(sg+1.2)*Math.pow(r.t,1.83)*.0254:0;
  return{dy:r.y-P.h*c,dz:r.z+sd-P.h*s,t:r.t,v:r.v}}
+function shot(dyMil,dzMil,roll,wnd){const k=ckMil();return shotM(dyMil,dzMil,roll,wnd,ST.ses.er==='r'?0:ST.ses.ev*k,ST.ses.wv*k)}
+// Ihanteelliset tornit (mil) tälle matkalle ja tuulelle: osuma keskelle täydellisellä tähtäyksellä
+function idealDials(wnd){
+ const P=params(),Dm=V('dist'),th0=solveEl(P,V('zd')),th=(wnd.wd%12)*Math.PI/6,wx=-wnd.ws*Math.cos(th),wz=-wnd.ws*Math.sin(th),sg=V('sg'),el=solveEl(P,Dm);
+ let az=0;for(let i=0;i<4;i++){const r=flight(P,el,az,wx,wz,Dm);if(!r)break;const sd=sg>0?1.25*(sg+1.2)*Math.pow(r.t,1.83)*.0254:0;az-=(r.z+sd)/Dm}
+ return{evMil:(el-th0)*1000,wvMil:az*1000}}
+function aimAt(t){
+ const h=trail;if(!h.length)return[0,0];const i=h.findIndex(p=>p[0]>=t);
+ if(i<=0)return[h[0][3],h[0][4]];if(i<0)return[h[h.length-1][3],h[h.length-1][4]];
+ const a=h[i-1],b=h[i],u=b[0]>a[0]?(t-a[0])/(b[0]-a[0]):0;return[a[3]+(b[3]-a[3])*u,a[4]+(b[4]-a[4])*u]}
+// Virheen erittely: miksi osuma meni siihen, mihin meni (ensimmäisen kertaluvun jako)
+function breakdown(m){
+ const Dm=V('dist'),ck=ckMil(),id=idealDials(m.wnd),real=ST.ses.er==='r',evA=ST.ses.ev*ck,wvA=ST.ses.wv*ck;
+ const aimY=real?m.aimY-evA:m.aimY,aimX=m.aimX,dopeY=evA-id.evMil,windX=wvA-id.wvMil;
+ const c=shotM(0,0,m.roll,m.wnd,id.evMil,id.wvMil),cantY=c?c.dy/Dm*1000:0,cantX=c?c.dz/Dm*1000:0;
+ const othY=m.ym-(aimY+dopeY+cantY),othX=m.zm-(aimX+windX+cantX);
+ const p0=aimAt(m.ts),p1=aimAt(m.ts-150),jerk=Math.hypot(p0[0]-p1[0],p0[1]-p1[1]),aim=Math.hypot(aimX,aimY);
+ const R=V('td')/2000/Dm*1000,sc=Math.max(R*1.2,.3),cls=v=>v>R*.6?'bad':v>R*.3?'warn':'',dir=(v,a,b)=>(v>=0?a:b)+' '+Math.abs(v).toFixed(2);
+ const cl=v=>{const n=Math.round(Math.abs(v)/ck);return n+' klik'},deg=m.roll*180/Math.PI;
+ const row=(lab,mag,txt)=>'<div class="bkr"><span>'+lab+'</span><i><b class="'+cls(mag)+'" style="width:'+Math.min(100,mag/sc*100).toFixed(0)+'%"></b></i><em>'+txt+'</em></div>';
+ const comps=[['Tähtäys',aim],['Dope',Math.abs(dopeY)],['Tuuli',Math.abs(windX)],['Kallistus',Math.hypot(cantX,cantY)]];
+ comps.sort((a,b)=>b[1]-a[1]);
+ let h='<div class="bkh">'+(m.hit?'Poikkeama keskeltä':'Miksi ohi?')+'</div>';
+ h+=row('Tähtäys',aim,dir(aimX,'oikealle','vasemmalle')+', '+dir(aimY,'ylös','alas')+' mil'+(jerk>.15&&jerk>.6*aim?' · liike ennen laukausta '+jerk.toFixed(2)+' mil':''));
+ h+=row('Dope',Math.abs(dopeY),(Math.round(Math.abs(dopeY)/ck)<1?'oikein':'olisi tarvittu '+cl(dopeY)+' '+(dopeY<0?'ylös':'alas')+' ('+Math.abs(dopeY).toFixed(2)+' mil)'));
+ h+=row('Tuuli',Math.abs(windX),(Math.round(Math.abs(windX)/ck)<1?'oikein':'olisi tarvittu '+cl(windX)+' '+(windX<0?'oikealle':'vasemmalle')+' ('+Math.abs(windX).toFixed(2)+' mil)')+' · sis. puuskat ja spin driftin');
+ if(Math.hypot(cantX,cantY)>.03)h+=row('Kallistus',Math.hypot(cantX,cantY),'ase kallellaan '+fm(deg,1)+'° → '+dir(cantX,'oikealle','vasemmalle')+' mil');
+ h+='<div class="bkv">'+(comps[0][1]<.05?'Kaikki osa-alueet olivat kohdallaan.':'Suurin tekijä: <b>'+comps[0][0]+'</b>.')+(Math.hypot(othX,othY)>.1?' Jäännös '+Math.hypot(othX,othY).toFixed(2)+' mil.':'')+'</div>';
+ breakdown.last={aimX,aimY,dopeY,windX,cantX,cantY,jerk,aim,othX,othY,deg};return h}
+
 
 // ===== Laukaisu, ääni ja tulokset =====
 let speaking=false,muteUntil=0,lastFz=null,frozen=null,ser=[],WND={ws:3,wd:3},mic=null,micOn=false,noise=.004,lastShot=0,lastPeak=0;
@@ -510,7 +624,7 @@ async function micToggle(){
 let ctx=null;
 const fm=(x,d=1)=>(x>=0?'+':'')+x.toFixed(d);
 function fire(ts){
- if(phase==='game'){gameFire(ts);return}if(phase==='gsum')return;
+ if(phase==='game'){gameFire(ts);return}if(phase==='gsum'||phase==='ana')return;
  const h=trail;if(h.length<3){$('ms').textContent='Ei asentodataa: paina Käynnistä.';return}
  const i=h.findIndex(p=>p[0]>=ts),a=i<=0?h[0]:h[i-1],b=i<0?h[h.length-1]:h[i];
  const u=b[0]>a[0]?Math.max(0,Math.min(1,(ts-a[0])/(b[0]-a[0]))):0,L=j=>a[j]+(b[j]-a[j])*u,x=L(3),y=L(4),rl=L(5);
@@ -519,7 +633,7 @@ function fire(ts){
  frozen={pts:h.filter(p=>p[0]>=ts-1200).map(p=>[p[0],p[3],p[4]]),at:[0,x,y],until:performance.now()+5000};lastFz=frozen;
  try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
  const gs=ST.ses.wm==='rnd'?1+.25*(Math.random()+Math.random()+Math.random()-1.5):1,wd={ws:WND.ws*gs,wd:WND.wd};
- const r=shot(y,x,rl,wd),Dm=V('dist'),R=V('td')/2000;
+ if(SS&&SS.adope)ST.ses.ev=Math.round(idealDials(wd).evMil/ckMil());const r=shot(y,x,rl,wd),Dm=V('dist'),R=V('td')/2000;
  if(!r){$('rs').textContent='Luoti ei yltänyt taululle';$('rd').textContent='Alkunopeus on liian pieni tälle matkalle.';return}
  const hit=Math.hypot(r.dy,r.dz)<=R,mm=m=>m/Dm*1000,ck=ckMil(),ce=Math.round(-mm(r.dy)/ck),cw=Math.round(-mm(r.dz)/ck);
  const en={t:Date.now(),pn:prof().name,dm:Dm,hit,dy:r.dy,dz:r.dz,ym:mm(r.dy),zm:mm(r.dz),wob,ws:wd.ws,wc:wd.wd,ev:ST.ses.ev,wv:ST.ses.wv};
@@ -529,11 +643,12 @@ function fire(ts){
  if(ST.ses.tm==='wind'&&ST.ses.wm==='rnd')newWind();
  if(ST.ses.tm==='rng'){const a=Math.max(100,V('dmin')),b=Math.max(a,V('dmax'));let d=Dm;for(let k=0;k<30&&d===Dm;k++)d=Math.round((a+Math.random()*(b-a))/50)*50;ST.ses.dist=d;updateHints();nx='<br>Seuraava matka: '+d+' m';sp+=' Seuraava matka '+d+' metriä.'}
  save();
- $('rs').textContent=(hit?'OSUMA':'OHI')+' · '+ser.length+'. laukaus';$('rs').style.color=hit?'var(--acc)':'var(--bad)';
+ $('rs').textContent=(hit?'OSUMA':'OHI')+' · '+ser.length+'. laukaus';$('rs').style.color=hit?'var(--ok)':'var(--bad)';
  $('cE').textContent=(ce>=0?'↑ ':'↓ ')+Math.abs(ce);$('cW').textContent=(cw>=0?'→ ':'← ')+Math.abs(cw);
+ try{$('bk').innerHTML=breakdown({ym:mm(r.dy),zm:mm(r.dz),aimY:y,aimX:x,roll:rl,wnd,ts,hit})}catch(e){$('bk').innerHTML=''}
  $('rd').innerHTML='Pysty '+fm(r.dy*100,0)+' cm, vaaka '+fm(r.dz*100,0)+' cm ('+fm(mm(r.dy),2)+' / '+fm(mm(r.dz),2)+' mil)<br>Heilunta ennen laukausta '+wob.toFixed(2)+' mil · lento '+r.t.toFixed(2)+' s · '+Math.round(r.v)+' m/s<br>Tuuli oli '+wd.ws.toFixed(1)+' m/s, klo '+wd.wd+nx+gyWarn();
- try{navigator.vibrate&&navigator.vibrate(hit?[250]:[70,70,70])}catch(e){}
- announce(hit,sp);drawT();lnkShot(en)}
+ try{ST.ui.hap!==false&&navigator.vibrate&&navigator.vibrate(hit?[250]:[70,70,70])}catch(e){}
+ afterShot(en,{x,y,rl,wd,r,Dm,R,hit,ts,wob});announce(hit,sp);drawT();lnkShot(en)}
 let actx=null,voices=[];
 function loadV(){try{voices=speechSynthesis.getVoices()||[]}catch(e){}}
 try{speechSynthesis.onvoiceschanged=loadV;loadV()}catch(e){}
@@ -559,12 +674,12 @@ function drawT(){
  g.clearRect(0,0,S,S);g.fillStyle=css('--line');g.beginPath();g.arc(cx,cx,R*k,0,7);g.fill();
  g.strokeStyle=css('--mut');g.lineWidth=1;g.beginPath();g.moveTo(0,cx);g.lineTo(S,cx);g.moveTo(cx,0);g.lineTo(cx,S);g.stroke();
  g.font='bold 22px sans-serif';g.textAlign='center';
- cur.forEach((s,i)=>{const x=cx+s.zm*k,y=cx-s.ym*k;g.fillStyle=s.hit?css('--acc'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
+ cur.forEach((s,i)=>{const x=cx+s.zm*k,y=cx-s.ym*k;g.fillStyle=s.hit?css('--ok'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
 
 // ===== Käyttöliittymä (uusi) =====
-const TITLES={train:'Harjoittele',gear:'Varusteet',res:'Tulokset',set:'Asetukset'};
+
 let phase='setup',stepI=0,resTab='h',calSkip=false,micSkip=false;
-const SF1=SF.filter(f=>['td','rd','tm','dmin','dmax'].includes(f.id)),SF2=SF.filter(f=>['wm','ws','wd'].includes(f.id)),SF3=SF.filter(f=>['dl','lk','sl','sw'].includes(f.id));
+const SF1=SF.filter(f=>['td','rd','er'].includes(f.id)),SF2=SF.filter(f=>['wm','ws','wd'].includes(f.id)),SF3=SF.filter(f=>['dl','lk','sl','sw'].includes(f.id));
 const PFK=PF.filter(f=>['sh','zd','cu','ck'].includes(f.id)),PFC=PF.filter(f=>['bc','mv','sg'].includes(f.id));
 const psum=p=>p.mv+' m/s · G7 '+p.bc+' · '+p.ck+({moa:' MOA',mm:' mm/100 m'}[p.cu]||' mil')+'/klik';
 function show(t){for(const id of['train','gear','res','set'])$('t_'+id).hidden=id!==t;
@@ -614,7 +729,7 @@ function renderHist(){
  const rows=ST.hist.slice(-30).reverse().map(s=>'<tr><td>'+new Date(s.t).toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'})+'</td><td>'+s.dm+' m</td><td>'+(s.hit?'osuma':'ohi')+'</td><td>'+fm(s.zm,2)+' / '+fm(s.ym,2)+'</td></tr>').join('');
  $('hs3').innerHTML=rows?'<table><tr><th>Aika</th><th>Matka</th><th>Tulos</th><th>mil (v / p)</th></tr>'+rows+'</table>':''}
 // --- Ohjattu aloitus
-const WT=['Turvallisuus ja kiinnitys','Kalibroi gyro','Nollaa tähtäys','Mikrofoni'];
+
 function showStep(i){stepI=i;$('dots').innerHTML=WT.map((_,k)=>'<span class="'+(k==i?'on':'')+'"></span>').join('');
  $('stt').textContent=(i+1)+'/4 · '+WT[i];for(let k=0;k<4;k++)$('s'+k).hidden=k!==i;
  $('pn').textContent=i==3?'Aloita ammunta':'Seuraava';updateWiz()}
@@ -792,13 +907,13 @@ async function lkAccept(code){
   if(d.type!=='answer')throw new Error('tämä ei ole anturilaitteen vastaus');
   await LK.pc.setRemoteDescription(d);$('lk_step').textContent='Yhdistetään...'}
  else throw new Error('valitse ensin laitteen rooli')}
-function adj(k,d){if(!['dist','ev','wv'].includes(k))return;ST.ses[k]=(+ST.ses[k]||0)+d;if(k==='dist')ST.ses.dist=Math.max(50,Math.min(2000,ST.ses.dist));save();updateHints()}
+function adj(k,d){if(!['dist','ev','wv'].includes(k))return;if(k==='dist'&&SS&&SS.kind==='daily')return;ST.ses[k]=(+ST.ses[k]||0)+d;if(k==='dist')ST.ses.dist=Math.max(50,Math.min(capDist(),ST.ses.dist));save();updateHints()}
 // --- anturilaite lähettää
 function lnkAim(x,y,r,t){if(!LK.open||LK.role!=='sens'||t-LK.lastAim<60)return;LK.lastAim=t;lkSend({t:'aim',x:+x.toFixed(2),y:+y.toFixed(2),r:+r.toFixed(4)})}
 function lnkState(){if(!LK.open||LK.role!=='sens')return;lkSend({t:'st',ph:phase,dist:V('dist'),td:V('td'),rd:V('rd'),ev:ST.ses.ev,wv:ST.ses.wv,hint:$('hint').textContent,tgt:$('tgt2').innerHTML,prof:prof().name})}
 function lnkShot(en){
  if(!LK.open||LK.role!=='sens')return;const f=frozen,st=f?Math.max(1,Math.ceil(f.pts.length/70)):1,pts=f?f.pts.filter((_,i)=>i%st===0).map(p=>[0,+p[1].toFixed(2),+p[2].toFixed(2)]):[];
- lkSend({t:'shot',en:{dm:en.dm,hit:en.hit,ym:+en.ym.toFixed(3),zm:+en.zm.toFixed(3)},rs:$('rs').textContent,ce:$('cE').textContent,cw:$('cW').textContent,rd:$('rd').innerHTML,pts,at:f?[+f.at[1].toFixed(2),+f.at[2].toFixed(2)]:[0,0]})}
+ lkSend({t:'shot',coach:lastCoach,en:{dm:en.dm,hit:en.hit,ym:+en.ym.toFixed(3),zm:+en.zm.toFixed(3)},bk:$('bk').innerHTML,rs:$('rs').textContent,ce:$('cE').textContent,cw:$('cW').textContent,rd:$('rd').innerHTML,pts,at:f?[+f.at[1].toFixed(2),+f.at[2].toFixed(2)]:[0,0]})}
 function lkMsg(m){
  if(LK.role==='sens'){
   if(m.t==='adj')adj(m.k,+m.d);
@@ -815,8 +930,8 @@ function rmDom(){
  $('r_ph').textContent=(PH[s.ph]||'Odotetaan tietoja puhelimelta...')+(s.prof?' Varuste: '+s.prof+'.':'');
  $('r_dist').textContent=(s.dist||'')+' m';$('r_ev').textContent=((s.ev||0)>=0?'↑ ':'↓ ')+Math.abs(s.ev||0)+' klik';$('r_wv').textContent=((s.wv||0)>=0?'→ ':'← ')+Math.abs(s.wv||0)+' klik';
  $('r_hint').textContent=s.hint||'';$('r_tgt').innerHTML=s.tgt||'';
- $('r_rs').textContent=l?l.rs:'Valmiina';$('r_rs').style.color=l?(l.en.hit?'var(--acc)':'var(--bad)'):'';
- $('r_cE').textContent=l?l.ce:'–';$('r_cW').textContent=l?l.cw:'–';$('r_rd').innerHTML=l?l.rd:'';
+ $('r_rs').textContent=l?l.rs:'Valmiina';$('r_rs').style.color=l?(l.en.hit?'var(--ok)':'var(--bad)'):'';
+ $('r_cE').textContent=l?l.ce:'–';$('r_cW').textContent=l?l.cw:'–';$('r_rd').innerHTML=l?l.rd:'';$('r_bk').innerHTML=l?((l.coach?'<div class="bkh">Ehdotus</div><p>'+l.coach+'</p>':'')+(l.bk||'')):'';
  setChip('r_link',LK.open?'ok':'bad',LK.open?'Yhteys OK':'Ei yhteyttä');
  const c=RM.ch||{};for(const k of['sen','gy','mic','z'])if(c[k])setChip('r_'+k,c[k][0],c[k][1])}
 function drawRemote(){
@@ -837,7 +952,7 @@ function drawRemote(){
  g.clearRect(0,0,W,W);g.fillStyle=css('--line');g.beginPath();g.arc(cx,cx,R*k2,0,7);g.fill();
  g.strokeStyle=css('--mut');g.lineWidth=1;g.beginPath();g.moveTo(0,cx);g.lineTo(W,cx);g.moveTo(cx,0);g.lineTo(cx,W);g.stroke();
  g.font='bold 22px sans-serif';g.textAlign='center';
- cur.forEach((e,i)=>{const x=cx+e.zm*k2,y=cx-e.ym*k2;g.fillStyle=e.hit?css('--acc'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
+ cur.forEach((e,i)=>{const x=cx+e.zm*k2,y=cx-e.ym*k2;g.fillStyle=e.hit?css('--ok'):css('--bad');g.beginPath();g.arc(x,y,i==cur.length-1?14:10,0,7);g.fill();g.fillStyle='#fff';g.fillText(i+1,x,y+7)})}
 $('lk_sens').onclick=lkStartSens;$('lk_disp').onclick=lkStartDisp;$('lk_end').onclick=lkEnd;$('r_disc').onclick=lkEnd;
 $('lk_scan').onclick=()=>scanQR(lkAccept);
 $('lk_copy').onclick=async()=>{try{await navigator.clipboard.writeText($('lk_out').value);lkStat('Koodi kopioitu.')}catch(e){$('lk_out').select()}};
@@ -855,10 +970,14 @@ let G=null;
 const stageObj=()=>STAGES.find(s=>s.id===ST.ui.stage);
 const rnd=i=>{const s=Math.sin(i*127.1)*43758.5453;return s-Math.floor(s)};
 const rWind=m=>({ws:Math.round(Math.random()*m*10)/10,wd:1+Math.floor(Math.random()*12)});
-function renderStages(){const cs=ST.ui.stage||'';
- $('stg').innerHTML=[{id:'',n:'Vapaa harjoitus',ds:'Ei peliä, pelkkä ammunta ja tulokset'},...STAGES].map(s=>`<div class="gi${cs===s.id?' on':''}" data-sg="${s.id}"><div><b>${s.n}</b><div class="m">${s.ds}${s.id&&ST.ui.best&&ST.ui.best[s.id]?' · Ennätys '+ST.ui.best[s.id]:''}</div></div><span>${cs===s.id?'Valittu':''}</span></div>`).join('');
- $('startb').textContent=cs?'Aloita peli':'Aloita harjoitus'}
-$('stg').onclick=e=>{const g=e.target.closest('[data-sg]');if(g){ST.ui.stage=g.dataset.sg;save();renderStages()}};
+let stgOpen=false;
+function renderStages(){
+ const cs=ST.ui.stage||'',all=[{id:'',n:'Vapaa harjoitus',ds:'Ei peliä, pelkkä ammunta ja tulokset'},...STAGES],cur=all.find(x=>x.id===cs)||all[0];
+ const info=x=>x.ds+(x.id&&ST.ui.best&&ST.ui.best[x.id]?' · Ennätys '+ST.ui.best[x.id]:'');
+ $('stg').innerHTML='<div class="gi on" data-sgt="1"><div><b>'+cur.n+'</b><div class="m">'+info(cur)+'</div></div><span>'+(stgOpen?'Sulje ▴':'Vaihda ▾')+'</span></div>'
+  +(stgOpen?all.filter(x=>x.id!==cur.id).map(x=>'<div class="gi" data-sg="'+x.id+'"><div><b>'+x.n+'</b><div class="m">'+info(x)+'</div></div></div>').join(''):'');
+ $('startb').textContent='Aloita: '+cur.n}
+$('stg').onclick=e=>{if(e.target.closest('[data-sgt]')){stgOpen=!stgOpen;renderStages();return}const g=e.target.closest('[data-sg]');if(g){ST.ui.stage=g.dataset.sg;stgOpen=false;save();renderStages()}};
 function startAny(){stageObj()?startGame():startShoot()}
 function startGame(){
  const S=stageObj();ST.ses.ev=0;ST.ses.wv=0;
@@ -973,6 +1092,247 @@ function drawGame(){
 $('gz1').onclick=()=>{if(G&&G.zoom>0){G.zoom--;ST.ui.zoom=G.zoom;save()}};$('gz2').onclick=()=>{if(G&&G.zoom<3){G.zoom++;ST.ui.zoom=G.zoom;save()}};
 $('gz').onclick=()=>$('z').onclick();$('gtst').onclick=()=>fire(performance.now());$('gend').onclick=()=>endGame('Peli keskeytetty.');
 $('gagain').onclick=startGame;$('gmenu').onclick=()=>{if(micOn)stopMic();setPhase('setup')};
+
+resTab='o';
+// ===== Kaukolaukaus: istunnot, analyysi, edistyminen =====
+const LV_N=['Aloittelija','Harjoittelija','Tarkka-ampuja','Kokenut ampuja','Mestari'];
+function lvl(xp){let n=1;while(xp>=50*n*(n+1))n++;return{n,name:LV_N[Math.min(4,Math.floor((n-1)/2))]+' '+n,lo:50*(n-1)*n,hi:50*n*(n+1)}}
+const capDist=()=>{if(ST.ui.diff==='x')return 2000;const n=lvl(ST.prog.xp).n;return n<3?400:n<5?600:n<7?800:1000};
+const STG_LV={warm:1,wind:1,steel:2,long:5,prs:7};
+const stageLocked=id=>ST.ui.diff!=='x'&&lvl(ST.prog.xp).n<(STG_LV[id]||1);
+const dkOf=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dk=()=>dkOf(new Date());
+function mul32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let _dc=null;
+function dailyCfg(){
+ const key=dk();if(_dc&&_dc.key===key)return _dc;
+ const rnd=mul32([...key].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7)),ds=[300,400,500,600];
+ const types=[{n:'Sivutuuli',f:()=>({ws:3+Math.round(rnd()*40)/10,wd:rnd()<.5?3:9})},{n:'Vaihtuva tuuli',f:()=>({ws:2+Math.round(rnd()*50)/10,wd:1+Math.floor(rnd()*12)})},{n:'Vastatuuli',f:()=>({ws:3+Math.round(rnd()*30)/10,wd:rnd()<.5?12:6})}];
+ const dist=ds[Math.floor(rnd()*ds.length)],ty=types[Math.floor(rnd()*types.length)];
+ return _dc={key,dist,type:ty.n,winds:Array.from({length:5},()=>ty.f()),total:5}}
+const wk=t=>{const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+function avgBy(f,from,to){const L=ST.hist.filter(s=>s.t>=from&&s.t<to&&s.jerk!=null);return L.length?L.reduce((a,s)=>a+f(s),0)/L.length:null}
+function touchStreak(){const P=ST.prog,td=dk();if(P.lastDay===td)return;const y=new Date();y.setDate(y.getDate()-1);P.streak=(P.lastDay===dkOf(y))?P.streak+1:1;P.lastDay=td}
+let SS=null,anaData=null,lastCoach='',rp=null;
+const WEEK=[
+ {id:'jerk',n:'Rauhallinen liipaisin',d:'Nykäys alle 0,6 mrad kolmessa laukauksessa',goal:3,xp:100,cnt:s=>s.jerk!=null&&s.jerk<.6},
+ {id:'wind',n:'Tuulenluku ilman nuolta',d:'Tuulikorjaus oikein (virhe alle 0,2 mrad) viidessä laukauksessa ilman tuulinuolta',goal:5,xp:200,cnt:s=>s.wx!=null&&Math.abs(s.wx)<.2&&s.wi===false},
+ {id:'stab',n:'Vakaa käsi',d:'Vakaus yli 80 % neljässä laukauksessa',goal:4,xp:100,cnt:s=>s.stab!=null&&s.stab>80}];
+const weekCount=d=>ST.hist.filter(s=>s.t>=wk(Date.now())&&d.cnt(s)).length;
+function checkWeekly(){const out=[],k=String(wk(Date.now()));for(const d of WEEK){const key=k+d.id;if(!ST.prog.claimed[key]&&weekCount(d)>=d.goal){ST.prog.claimed[key]=1;ST.prog.xp+=d.xp;out.push(d)}}return out}
+// --- koti
+function renderHome(){
+ const P=ST.prog,L=lvl(P.xp),c=dailyCfg(),done=P.daily&&P.daily.key===c.key;
+ $('hstreak').textContent='Putki '+P.streak+' pv';
+ $('k_dt').textContent=c.type+', '+c.dist+' m';$('k_ds').textContent=c.total+' laukausta · noin 3 minuuttia'+(done?' · suoritettu '+P.daily.score.toFixed(1):'');
+ $('startb').textContent=done?'Pelaa uudelleen':'Aloita';
+ $('k_gn').textContent=prof().name;$('su_psum').textContent=psum(prof());
+ $('su_wx').textContent=ST.wx.tc+' °C · '+ST.wx.pr+' hPa · '+ST.wx.hu+' %';
+ const w0=wk(Date.now()),a=avgBy(s=>s.jerk,w0,Infinity),b=avgBy(s=>s.jerk,w0-6048e5,w0);
+ $('k_wk').innerHTML=a==null?'Ammu muutama laukaus, niin näet kehityksesi.':'Nykäys <b>'+a.toFixed(1)+' mrad</b>'+(b?' · '+(a<=b?'−':'+')+Math.round(Math.abs(a-b)/b*100)+' % viime viikosta':'');
+ $('k_lv').textContent=L.name;$('k_xp').textContent=(P.xp-L.lo)+' / '+(L.hi-L.lo)+' xp';$('k_xb').style.width=Math.round(100*(P.xp-L.lo)/(L.hi-L.lo))+'%';
+ $('k_cap').textContent=ST.ui.diff==='x'?'':'Sallitut matkat tasollasi: enintään '+capDist()+' m'}
+function renderCustom(){$('wf').innerHTML=formHTML(WF,ST.wx,'w_');condForms();updateHints()}
+function renderSetup(){renderHome();renderCustom()}
+function updateHints(){
+ const s=ST.ses;document.querySelectorAll('.v_dist').forEach(e=>e.textContent=V('dist')+' m');
+ $('v_ev').textContent=(s.ev>=0?'↑ ':'↓ ')+Math.abs(s.ev)+' klik'+(SS&&SS.adope?' (auto)':'');$('v_wv').textContent=(s.wv>=0?'→ ':'← ')+Math.abs(s.wv)+' klik';
+ $('su_psum').textContent=psum(prof());$('su_wx').textContent=ST.wx.tc+' °C · '+ST.wx.pr+' hPa · '+ST.wx.hu+' %';$('k_gn').textContent=prof().name;
+ let t='';if(ST.ui.hint&&!(SS&&SS.adope)){try{const P=params(),mil=(solveEl(P,V('dist'))-solveEl(P,V('zd')))*1000;t='Dope '+V('dist')+' m: ylös '+Math.round(mil/ckMil())+' klik ('+mil.toFixed(2)+' mil)'}catch(e){}}
+ $('hint').textContent=t;
+ const rd=V('rd'),Dm=V('dist'),real=V('td')*rd/Dm,tx='Oikean maalin koko '+rd+' m:ssä: <b>Ø '+(real<10?real.toFixed(1):real<100?real.toFixed(1):Math.round(real))+' mm</b> (vastaa Ø '+V('td')+' mm taulua '+Dm+' m:ssä). 1 mil = '+rd+' mm, 1 klik = '+(ckMil()*rd).toFixed(1)+' mm.';
+ $('su_tgt').innerHTML=tx;$('tgt2').innerHTML=tx;lnkState()}
+// --- näkymät
+const TITLES={train:'Kaukolaukaus',chal:'Haasteet',gear:'Varusteet',res:'Edistyminen',set:'Asetukset'};
+function show(t){for(const id of['train','chal','gear','res','set'])$('t_'+id).hidden=id!==t;
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('hdt').textContent=TITLES[t];$('hstreak').hidden=t!=='train';
+ if(t==='train')renderHome();if(t==='gear')renderGear();if(t==='res')renderRes();if(t==='chal')renderChal();if(t==='set')renderSet();window.scrollTo(0,0)}
+function setPhase(p){phase=p;for(const x of['setup','custom','prep','shoot','ana','sum','remote','game','gsum'])$('p_'+x).hidden=x!==p;
+ document.body.classList.toggle('run',['prep','shoot','ana','remote','game'].includes(p));document.body.classList.toggle('remote',p==='remote');lnkState();if(p==='setup')renderSetup();window.scrollTo(0,0)}
+function renderSet(){$('df_b').classList.toggle('on',ST.ui.diff!=='x');$('df_x').classList.toggle('on',ST.ui.diff==='x');
+ for(const k of['wi','aid','hap','remind'])$('tg_'+k).checked=ST.ui[k]!==false;
+ $('set_cal').textContent=GB.ok?'Gyro kalibroitu '+Math.max(0,Math.round((performance.now()-GB.t)/60000))+' min sitten':'Ei kalibroitu tässä istunnossa. Kalibrointi tehdään jokaisen session alussa.';
+ $('set_lk').textContent=LK.open?'Yhdistetty ('+(LK.role==='sens'?'anturi':'näyttö')+')':'Ei yhdistettynä'}
+// --- istunnon aloitus
+function safetyGate(cb){if(ST.ui.remind===false){cb();return}$('sg_ok').onclick=()=>{$('sg').hidden=true;cb()};$('sg_no').onclick=()=>{$('sg').hidden=true};$('sg').hidden=false}
+function beginSession(kind,opt){
+ const prev={dist:ST.ses.dist,td:ST.ses.td,wm:ST.ses.wm,er:ST.ses.er,ws:ST.ses.ws,wd:ST.ses.wd};
+ SS=null;ST.ui.stage=kind==='stage'?opt:'';
+ if(kind==='daily'){const c=dailyCfg(),R=ST.ui.diff==='x'?.45:.8;ST.ses.dist=c.dist;ST.ses.td=Math.round(2*R*c.dist);ST.ses.wm='man';ST.ses.er='v';ST.ses.ev=0;ST.ses.wv=0;SS={kind,cfg:c,n:0,total:c.total,shots:[],prev,adope:ST.ui.diff!=='x'}}
+ else if(kind==='free'){ST.ses.dist=Math.min(ST.ses.dist,capDist());SS={kind,n:0,total:0,shots:[],prev,adope:false}}
+ else{SS={kind:'stage',n:0,total:0,shots:[],prev,adope:false}}
+ save();prepStart()}
+function prepStart(){calSkip=false;micSkip=false;zT=0;setPhase('prep');showStep(ST.ui.mounted?1:0)}
+const WT=['Kiinnitys','Kalibrointi · vaihe 1/2','Laukaisun tunnistus · vaihe 2/2'];
+function showStep(i){stepI=i;$('dots').innerHTML=[0,1,2].map(k=>'<span class="'+(k==i?'on':'')+'"></span>').join('');
+ $('stt').textContent=WT[i];for(let k=0;k<3;k++)$('s'+k).hidden=k!==i;
+ $('pn').textContent=i==2?'Aloita ammunta':'Seuraava';updateWiz()}
+function updateWiz(){if(phase!=='prep')return;let ok=true;
+ if(stepI===1)ok=zT>0||(calSkip&&zT>0);$('pn').disabled=!ok;
+ $('z').disabled=!(GB.ok||calSkip||mode!=='own'&&running)}
+function quickStart(){if(!running)$('go').onclick();startAny()}
+function startShoot(){ser=[];frozen=null;drawT();lkSend({t:'reset'});if(!SS)SS={kind:'free',n:0,total:0,shots:[],prev:null,adope:false};
+ if(SS.kind==='daily')nextShotSetup();else newWind();setPhase('shoot');updateHints()}
+function nextShotSetup(){
+ if(SS&&SS.kind==='daily')WND={...SS.cfg.winds[Math.min(SS.n,SS.cfg.winds.length-1)]};else if(ST.ses.wm==='rnd')newWind();
+ if(SS&&SS.adope)ST.ses.ev=Math.round(idealDials(WND).evMil/ckMil());updateHints()}
+function leaveSession(){if(SS&&SS.prev)Object.assign(ST.ses,SS.prev);SS=null;save()}
+function endSession(){if(micOn)stopMic();if(!SS||!SS.shots.length){leaveSession();setPhase('setup');return}finishSession()}
+// --- laukauksen jälkeen
+function afterShot(en,c){
+ const bl=breakdown.last||{},Rm=c.R/c.Dm*1000,dm=Math.hypot(en.ym,en.zm);
+ en.stab=Math.max(0,Math.min(100,Math.round(100*(1-c.wob/Rm))));en.jerk=bl.jerk||0;en.sc=c.hit?Math.round((10-5*dm/Rm)*10)/10:0;en.wx=bl.windX||0;en.dpe=bl.dopeY||0;
+ en.wi=!!(ST.ui.wi!==false&&ST.ui.diff!=='x'&&SS&&SS.kind==='daily');en.kind=SS?SS.kind:'free';
+ const co=coach(en,bl,c);lastCoach=co.t+'. '+co.b;
+ if(SS){SS.n++;SS.shots.push(en)}
+ save();
+ if(SS&&ST.ui.ana!==false)openAna(en,bl,co,c);else afterAna()}
+function afterAna(){if(SS&&SS.total&&SS.n>=SS.total)finishSession();else{nextShotSetup();setPhase('shoot')}}
+function coach(en,bl,c){
+ const Dm=c.Dm,R=c.R/Dm*1000,ck=ckMil(),aimX=bl.aimX||0,aimY=bl.aimY||0,aim=Math.hypot(aimX,aimY),jerk=bl.jerk||0,dopeY=bl.dopeY||0,windX=bl.windX||0,cant=Math.hypot(bl.cantX||0,bl.cantY||0);
+ const dir=(x,y)=>{const v=(Math.abs(y)>.5*Math.abs(x)||Math.abs(x)<.05)?(y>=0?'ylös':'alas'):'',h=(Math.abs(x)>.5*Math.abs(y)||Math.abs(y)<.05)?(x>=0?'oikealle':'vasemmalle'):'';return(v+' '+h).trim()};
+ const WD={1:'edestä oikealta',2:'oikealta',3:'oikealta',4:'oikealta',5:'takaa oikealta',6:'takaa',7:'takaa vasemmalta',8:'vasemmalta',9:'vasemmalta',10:'vasemmalta',11:'edestä vasemmalta',12:'edestä'};
+ const n={a:aim/R,d:Math.abs(dopeY)/R,w:Math.abs(windX)/R,c:cant/R},mx=Math.max(n.a,n.d,n.w,n.c);
+ if(mx<.25&&c.hit)return{t:en.sc>=9?'Erinomainen laukaus':'Hyvä laukaus',b:'Tähtäys, elevaatio ja tuulikorjaus olivat kohdallaan. Toista sama rytmi seuraavaan laukaukseen.'};
+ if(mx===n.a){
+  if(jerk>.15&&jerk>.6*aim)return{t:'Liipaisun nykäys vei laukauksen '+dir(aimX,aimY),b:(en.stab>=70?'Tähtäin oli vakaa, mutta nykäisit liipaisimesta. ':'')+'Paina sormella tasaisesti suoraan taaksepäin äläkä purista koko kättä.'};
+  if(en.stab<60)return{t:'Tähtäin liikkui laukaisuhetkellä',b:'Odota rauhallisempaa hetkeä. Hengitä ulos ja laukaise uloshengityksen tauolla. Heilunta ennen laukausta oli '+c.wob.toFixed(1)+' mil.'};
+  return{t:'Tähtäyspiste oli '+dir(aimX,aimY)+' keskipisteestä',b:'Tarkista juuri ennen laukausta, että tähtäin on keskellä maalia ('+aim.toFixed(1)+' mil).'}}
+ if(mx===n.w){const need=Math.round(-windX/ck);return{t:'Tuulikorjaus ei osunut kohdalleen',b:'Tuuli oli '+c.wd.ws.toFixed(1)+' m/s '+(WD[Math.round(c.wd.wd)||12]||'')+'. Oikea korjaus olisi ollut noin '+kl(Math.abs(need))+' '+(need>=0?'oikealle':'vasemmalle')+' nykyisestä.'}}
+ if(mx===n.d){const need=Math.round(-dopeY/ck);return{t:'Elevaatio ei vastannut matkaa',b:Dm+' m vaatii noin '+kl(Math.abs(need))+' '+(need>=0?'ylös':'alas')+' nykyisestä säädöstä.'}}
+ return{t:'Ase oli kallellaan',b:'Kallistus ('+(((bl.deg)||0)).toFixed(1)+'°) siirsi osumaa sivulle. Pidä ase vaakasuorassa, vesivaaka auttaa.'}}
+function openAna(en,bl,co,c){
+ anaData={en,bl,co,c,pts:frozen?frozen.pts.slice():[]};
+ $('an_k').textContent='Laukaus '+SS.n+(SS.total?' / '+SS.total:'');
+ $('an_r').textContent=en.hit?('Osuma '+en.sc.toFixed(1)):'Ohi';$('an_r').style.color=en.hit?'var(--ok)':'var(--bad)';
+ $('an_t').textContent=co.t;$('an_b').textContent=co.b;
+ $('an_s1').textContent=en.stab+' %';$('an_s2').textContent=en.jerk.toFixed(1)+' mrad';$('an_s3').textContent=(en.wx>=0?'+':'−')+Math.abs(en.wx).toFixed(1);
+ $('an_next').textContent=(SS.total&&SS.n>=SS.total)?'Yhteenveto':'Seuraava laukaus';
+ setPhase('ana');startReplay(1)}
+function startReplay(slow){cancelAnimationFrame(rp);const t0=performance.now(),dur=slow?2800:900,step=n=>{const p=Math.min(1,(n-t0)/dur);drawTrace(p);if(p<1)rp=requestAnimationFrame(step)};step(t0)}
+function drawTrace(p){
+ const d=anaData;if(!d)return;const c=$('an_tr'),g=c.getContext('2d'),W=c.width,cx=W/2,pts=d.pts,Rm=d.c.R/d.c.Dm*1000,zx=d.c.x-d.en.zm,zy=d.c.y-d.en.ym;
+ let m=Rm*1.6;for(const q of pts)m=Math.max(m,Math.hypot(q[1]-zx,q[2]-zy)*1.15);m=Math.max(m,Math.hypot(d.c.x-zx,d.c.y-zy)*1.15);const k=(W/2-24)/m,X=q=>cx+(q[1]-zx)*k,Y=q=>cx-(q[2]-zy)*k;
+ g.clearRect(0,0,W,W);g.lineWidth=2;g.strokeStyle=css('--line');for(const f of[.33,.66,1]){g.beginPath();g.arc(cx,cx,Rm*f*k,0,7);g.stroke()}
+ g.fillStyle='rgba(76,195,138,.10)';g.beginPath();g.arc(cx,cx,Rm*k,0,7);g.fill();
+ g.strokeStyle=css('--mut');g.beginPath();g.moveTo(0,cx);g.lineTo(W,cx);g.moveTo(cx,0);g.lineTo(cx,W);g.stroke();
+ const n=Math.max(2,Math.floor(p*(pts.length-1))+1);g.lineWidth=4;g.strokeStyle=css('--acc');g.lineJoin='round';g.beginPath();
+ for(let i=0;i<Math.min(n,pts.length);i++){const q=pts[i];i?g.lineTo(X(q),Y(q)):g.moveTo(X(q),Y(q))}g.stroke();
+ const q=pts[Math.min(n,pts.length)-1];if(q){g.fillStyle=css('--acc');g.beginPath();g.arc(X(q),Y(q),9,0,7);g.fill()}
+ if(p>=1){const a=[0,d.c.x,d.c.y],x0=X(a),y0=Y(a);g.strokeStyle=css('--bad');g.lineWidth=5;g.beginPath();g.moveTo(x0-13,y0-13);g.lineTo(x0+13,y0+13);g.moveTo(x0+13,y0-13);g.lineTo(x0-13,y0+13);g.stroke()}}
+// --- yhteenveto
+function finishSession(){
+ const S=SS,sh=S.shots,n=sh.length;
+ const total=sh.reduce((a,s)=>a+(s.sc||0),0),avgStab=Math.round(sh.reduce((a,s)=>a+(s.stab||0),0)/n),avgJ=sh.reduce((a,s)=>a+(s.jerk||0),0)/n;
+ let es=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)es=Math.max(es,Math.hypot(sh[i].zm-sh[j].zm,sh[i].ym-sh[j].ym));const dist=sh[0].dm,spCm=es*dist/10;
+ const key=S.kind==='daily'?'daily':'free',prev=ST.prog.best[key]||0,rec=total>prev&&n>=3;if(rec)ST.prog.best[key]=total;
+ const l0=lvl(ST.prog.xp).n;touchStreak();
+ const xp=Math.round(total*2)+(S.kind==='daily'?40:10)+(rec?30:0);ST.prog.xp+=xp;ST.prog.sess++;
+ if(S.kind==='daily')ST.prog.daily={key:S.cfg.key,score:total};
+ const wd=checkWeekly(),l1=lvl(ST.prog.xp).n;
+ const Rm=V('td')/2000/dist*1000,badges=[];if(avgStab>=80)badges.push('Vakaa käsi');if(n>=3&&es<=Rm)badges.push('Tiivis ryhmä');if(ST.prog.streak>=2)badges.push('Putki '+ST.prog.streak);wd.forEach(d=>badges.push(d.n));
+ const w0=wk(Date.now()),a=avgBy(s=>s.jerk,w0,Infinity),b=avgBy(s=>s.jerk,w0-6048e5,w0);
+ const wOk=sh.filter(s=>Math.abs(s.wx||0)<.2).length,comp=[['Nykäys',avgJ/ (Rm||1)],['Tuulen luku',sh.reduce((x,s)=>x+Math.abs(s.wx||0),0)/n/(Rm||1)],['Elevaatio',sh.reduce((x,s)=>x+Math.abs(s.dpe||0),0)/n/(Rm||1)],['Tähtäyksen vakaus',(100-avgStab)/100]].sort((x,y)=>y[1]-x[1]);
+ const learn=wOk>=Math.ceil(n*.6)?'Tuulen luku onnistui: korjaus oli oikein '+wOk+' laukauksessa '+n+':sta.':'Eniten parannettavaa: '+comp[0][0].toLowerCase()+'. Keskity siihen seuraavassa sessiossa.';
+ $('sm_k').textContent=(S.kind==='daily'?'Päivän haaste · '+S.cfg.type+', '+dist+' m':S.kind==='stage'?'Haaste':'Vapaa harjoitus · '+dist+' m');
+ $('sm_sc').textContent=total.toFixed(1);$('sm_mx').textContent='/ '+(n*10);
+ $('sm_rec').textContent=rec?'Uusi ennätys (edellinen '+prev.toFixed(1)+')':(prev?'Ennätys '+prev.toFixed(1):'');
+ const bw=Math.floor(280/n)-6;$('sm_bars').innerHTML='<svg viewBox="0 0 300 70" width="100%">'+sh.map((s,i)=>'<rect x="'+(i*(bw+6)+6)+'" y="'+(62-(s.sc||0)*5.6)+'" width="'+bw+'" height="'+Math.max(3,(s.sc||0)*5.6)+'" rx="3" fill="'+(s.hit?'var(--acc)':'var(--line)')+'"/>').join('')+'</svg>';
+ $('sm_xp').textContent='+'+xp+' xp'+(l1>l0?' · uusi taso!':'')+' · Putki '+ST.prog.streak+' pv';
+ $('sm_bg').innerHTML=badges.map(x=>'<span class="badge">'+x+'</span>').join('')||'<span class="m">Ei uusia mitaleita tällä kertaa.</span>';
+ $('sm_nyk').textContent=avgJ.toFixed(1)+' mrad';$('sm_nykd').textContent=(a!=null&&b)?(a<=b?'−':'+')+Math.round(Math.abs(a-b)/b*100)+' % viime viikosta':'';
+ $('sm_haj').textContent=spCm.toFixed(1)+' cm';$('sm_st').textContent=avgStab+' %';$('sm_lr').textContent=learn;
+ shareTxt='Kaukolaukaus: '+$('sm_k').textContent+'. Pisteet '+total.toFixed(1)+' / '+(n*10)+', vakaus '+avgStab+' %, nykäys '+avgJ.toFixed(1)+' mrad, hajonta '+spCm.toFixed(1)+' cm.';
+ leaveSession();save();setPhase('sum')}
+let shareTxt='';
+// --- haasteet ja edistyminen
+function renderChal(){
+ const c=dailyCfg(),P=ST.prog,done=P.daily&&P.daily.key===c.key;
+ $('ch_daily').innerHTML='<div class="l">Päivän haaste</div><div class="h">'+c.type+', '+c.dist+' m</div><p class="m">'+c.total+' laukausta · kaikilla sama rata tänään'+(done?' · oma tulos '+P.daily.score.toFixed(1)+' / 50':'')+'</p>';
+ $('ch_stages').innerHTML=STAGES.map(s=>{const lk=stageLocked(s.id),b=ST.ui.best&&ST.ui.best[s.id];return'<div class="gi'+(lk?' lock':'')+'" data-stg="'+s.id+'"><div><b>'+s.n+'</b><div class="m">'+s.ds+(b?' · Ennätys '+b:'')+'</div></div><span>'+(lk?'Avautuu tasolla '+STG_LV[s.id]:'Pelaa')+'</span></div>'}).join('');
+ $('ch_week').innerHTML=WEEK.map(d=>{const k=Math.min(d.goal,weekCount(d)),ok=ST.prog.claimed[String(wk(Date.now()))+d.id];return'<div class="c"><div class="r"><b>'+d.n+'</b><span class="pill">'+(ok?'Valmis':k+'/'+d.goal)+'</span></div><p class="m">'+d.d+' · palkinto '+d.xp+' xp</p><div class="prog"><i style="width:'+Math.round(100*k/d.goal)+'%"></i></div></div>'}).join('')}
+function renderOverview(){
+ const P=ST.prog,L=lvl(P.xp),w0=wk(Date.now()),vals=[];for(let i=7;i>=0;i--){const f=w0-i*6048e5;vals.push(avgBy(s=>s.jerk,f,f+6048e5))}
+ const nn=vals.filter(v=>v!=null),mx=Math.max(1,...nn),first=nn[0],last=nn[nn.length-1];
+ const bars='<svg viewBox="0 0 300 80" width="100%">'+vals.map((v,i)=>v==null?'':'<rect x="'+(i*37+6)+'" y="'+(74-v/mx*64)+'" width="28" height="'+(v/mx*64+2)+'" rx="4" fill="'+(i==7?'var(--acc)':'var(--line)')+'"/>').join('')+'</svg>';
+ const rec=ST.hist.slice(-30),st=rec.length?Math.round(rec.reduce((a,s)=>a+(s.stab||0),0)/rec.length):null;
+ let bias='Ei vielä tietoa';if(rec.length>=5){const mx2=rec.reduce((a,s)=>a+s.zm,0)/rec.length,my=rec.reduce((a,s)=>a+s.ym,0)/rec.length,mg=Math.hypot(mx2,my);bias=mg<.1?'Keskitetty':((Math.abs(my)>.4*mg?(my>=0?'ylös ':'alas '):'')+(Math.abs(mx2)>.4*mg?(mx2>=0?'oikealle':'vasemmalle'):'')).trim()}
+ const nx=WEEK.find(d=>!P.claimed[String(w0)+d.id]);
+ $('res_o').innerHTML='<div class="card"><div class="lbl">Liipaisun nykäys</div>'+(nn.length>1?'<div class="h big">'+(last<=first?'−':'+')+Math.round(Math.abs(last-first)/first*100)+' %</div>':'<div class="h big">–</div>')+bars+'<p class="m">8 viikon keskiarvo, pienempi on parempi'+(last!=null?' · nyt '+last.toFixed(1)+' mrad':'')+'</p></div>'
+ +'<div class="st3"><div class="card"><b>'+(st==null?'–':st+' %')+'</b><span>Vakaus (30 viim.)</span></div><div class="card"><b>'+bias+'</b><span>Poikkeama</span></div></div>'
+ +'<div class="card"><div class="r"><b>'+L.name+'</b><span class="m">'+(P.xp-L.lo)+' / '+(L.hi-L.lo)+' xp</span></div><div class="prog"><i style="width:'+Math.round(100*(P.xp-L.lo)/(L.hi-L.lo))+'%"></i></div><p class="m">'+(ST.ui.diff==='x'?'Asiantuntijatilassa kaikki matkat ovat auki.':'Seuraavat tasot avaavat pidempiä matkoja ('+capDist()+' m tällä tasolla).')+'</p></div>'
+ +(nx?'<div class="card"><div class="lbl">Seuraava mitali</div><b>'+nx.n+'</b><p class="m">'+Math.min(nx.goal,weekCount(nx))+' / '+nx.goal+' · '+nx.d+'</p></div>':'')}
+function renderRes(){
+ for(const k of['o','h','d']){$('res_'+k).hidden=resTab!==k;$('rt_'+k).classList.toggle('on',resTab===k)}
+ if(resTab==='o')renderOverview();else if(resTab==='h')renderHist();else dope()}
+// --- tapahtumat
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
+ const g=t.closest('[data-stg]');if(g){const id=g.dataset.stg;if(stageLocked(id)){alert('Tämä haaste avautuu tasolla '+STG_LV[id]+'. Asiantuntijatila avaa kaiken.');return}safetyGate(()=>beginSession('stage',id));return}});
+$('startb').onclick=()=>safetyGate(()=>beginSession('daily'));
+$('k_free').onclick=()=>setPhase('custom');
+$('startc').onclick=()=>safetyGate(()=>beginSession('free'));
+$('cust_back').onclick=()=>setPhase('setup');
+$('k_edit').onclick=()=>show('gear');$('gear_back').onclick=()=>show('train');
+$('ch_dgo').onclick=()=>{show('train');safetyGate(()=>beginSession('daily'))};
+$('skipall').onclick=()=>{ST.ui.mounted=true;save();quickStart()};
+$('s0n').onclick=()=>{ST.ui.mounted=true;save();showStep(1)};
+$('skipcal').onclick=()=>{calSkip=true;$('z').disabled=false;updateWiz()};
+$('pb').onclick=()=>{if(stepI<=1&&!ST.ui.mounted||stepI===0)setPhase('setup');else if(stepI===1)setPhase('setup');else showStep(stepI-1)};
+$('pn').onclick=()=>{if(stepI<2)showStep(stepI+1);else startAny()};
+$('skipmic').onclick=()=>startAny();
+$('endb').onclick=endSession;
+$('an_next').onclick=()=>{cancelAnimationFrame(rp);afterAna()};
+$('an_rp').onclick=()=>startReplay(1);
+$('newb').onclick=()=>setPhase('setup');
+$('toRes').onclick=()=>{setPhase('setup');show('res')};
+$('shareb').onclick=async()=>{try{if(navigator.share)await navigator.share({text:shareTxt});else{await navigator.clipboard.writeText(shareTxt);$('shareb').textContent='Kopioitu'}}catch(e){}};
+$('rt_o').onclick=()=>{resTab='o';renderRes()};$('rt_h').onclick=()=>{resTab='h';renderRes()};$('rt_d').onclick=()=>{resTab='d';renderRes()};
+$('df_b').onclick=()=>{ST.ui.diff='b';save();renderSet()};$('df_x').onclick=()=>{ST.ui.diff='x';save();renderSet()};
+for(const k of['wi','aid','hap','remind'])$('tg_'+k).onchange=()=>{ST.ui[k]=$('tg_'+k).checked;save()};
+$('set_recal').onclick=()=>{show('train');safetyGate(()=>{SS=SS||{kind:'free',n:0,total:0,shots:[],prev:null,adope:false};prepStart()})};
+$('rc').onclick=()=>{if(!micOn&&phase==='shoot')fire(performance.now())};
+$('ch_d').onclick=()=>{$('chal_d').hidden=false;$('chal_w').hidden=true;$('ch_d').classList.add('on');$('ch_w').classList.remove('on')};
+$('ch_w').onclick=()=>{$('chal_d').hidden=true;$('chal_w').hidden=false;$('ch_w').classList.add('on');$('ch_d').classList.remove('on')};
+function renderStages(){}
+// --- tilarivi ja ring
+function liveWob(){const n=performance.now(),p=trail.filter(q=>n-q[0]<1000);if(p.length<4)return null;const mx=p.reduce((a,q)=>a+q[3],0)/p.length,my=p.reduce((a,q)=>a+q[4],0)/p.length;return Math.sqrt(p.reduce((a,q)=>a+(q[3]-mx)**2+(q[4]-my)**2,0)/p.length)}
+const WDN={1:'edestä oikealta',2:'oikealta',3:'oikealta',4:'oikealta',5:'takaa oikealta',6:'takaa',7:'takaa vasemmalta',8:'vasemmalta',9:'vasemmalta',10:'vasemmalta',11:'edestä vasemmalta',12:'edestä'};
+function chipUpd(){
+ const now=performance.now(),last=trail.length?trail[trail.length-1][0]:0,alive=running&&now-last<800;
+ const age=zT?(now-zT)/1000:0,ex=(mode==='own'&&GB.ok&&zT)?(GB.rate!=null?GB.rate*age/60:GB.se*MIL*age):0,lk=LK.open&&LK.role==='sens';
+ const CH={sen:[alive?'ok':'bad','Anturi '+(alive?'OK':'ei dataa')],
+  gy:[mode!=='own'?'warn':GB.ok?'ok':GB.cal?'warn':'bad',mode!=='own'?'Gyro: ei kalibrointia':GB.ok?'Gyro kalibroitu':GB.cal?'Gyro kalibroidaan':'Gyro ei kalibroitu'],
+  mic:[micOn?'ok':'warn',micOn?'Mikrofoni päällä':'Mikrofoni pois'],
+  z:[!zT?'bad':(age>60||ex>=1)?'warn':'ok',!zT?'Ei nollattu':'Nollaus '+Math.round(age)+' s'+(ex>0?' · ±'+ex.toFixed(1)+' mil':'')]};
+ if(phase==='shoot'){
+  for(const k of['sen','gy','mic','z'])setChip('c_'+k,CH[k][0],CH[k][1]);setChip('c_lk',lk?'ok':'warn',lk?'Näyttö yhdistetty':'Ei näyttöä');
+  $('m_l').textContent=V('dist')+' m · '+ST.wx.tc+' °C';
+  $('m_c').textContent=SS&&SS.kind==='daily'?'Päivän haaste '+(Math.min(SS.n+1,SS.total))+'/'+SS.total:(SS&&SS.total?'Laukaus '+(SS.n+1)+'/'+SS.total:'Vapaa harjoitus · laukaus '+((SS?SS.n:0)+1));
+  $('m_r').textContent='Putki '+ST.prog.streak;
+  const w=liveWob(),R=V('td')/2000/V('dist')*1000,st=w==null?null:Math.max(0,Math.round(100*(1-w/R)));
+  const sl=st==null?'–':st>=85?'Erinomainen':st>=70?'Hyvä':st>=50?'Kohtalainen':'Epävakaa';
+  $('m_stab').textContent='Vakaus: '+sl;$('m_stab').className='pill '+(st==null?'':st>=70?'ok':st>=50?'warn':'bad');
+  const showW=ST.ui.wi!==false&&ST.ui.diff!=='x'&&SS&&SS.kind==='daily';
+  $('m_wind').hidden=!showW;if(showW)$('m_wind').textContent='Tuuli '+WND.ws.toFixed(1)+' m/s '+(WDN[Math.round(WND.wd)||12]||'');
+  $('m_pr').textContent=SS&&SS.kind==='daily'&&ST.ui.diff!=='x'?'Hengitä ulos ja laukaise.':'Laukaise, kun olet valmis.'}
+ if(lk&&now-LK.lastCh>600){LK.lastCh=now;lkSend({t:'ch',...CH})}
+ if(phase==='prep'){
+  const pr=GB.cal?Math.min(1,(now-GB.cal.t0)/GCAL):GB.ok?1:0;$('ringp').style.strokeDashoffset=(440*(1-pr)).toFixed(1);
+  $('ringt').textContent=GB.ok?'Asento vakaa':GB.cal?'Pidä paikallaan':'Ei vielä aloitettu';
+  $('zst').textContent=zT?'Nollattu ✓ ('+Math.round(age)+' s sitten)':GB.ok?'Valmis nollattavaksi.':'';
+  $('ms0').textContent=$('ms').textContent;updateWiz()}}
+
+ST.ses.tm='free';
+(function(){const T=/\d\.\d/,R=/(\d)\.(\d)/g,SK=/^(SCRIPT|STYLE|TEXTAREA|CANVAS|INPUT|SELECT|OPTION)$/;
+ const fix=n=>{if(n.nodeType===3){if(T.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(R,'$1,$2')}else if(n.nodeType===1&&!SK.test(n.tagName)){for(const c of n.childNodes)fix(c)}};
+ try{fix(document.body);new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}}).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}})();
+function applyTheme(){
+ const t=ST.ui.theme||'dark',eff=t==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'):t;
+ document.documentElement.setAttribute('data-theme',eff);
+ const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',eff==='light'?'#f2f1ec':'#0e1113')}
+$('theme').value=ST.ui.theme||'dark';$('theme').onchange=()=>{ST.ui.theme=$('theme').value;save();applyTheme()};
+applyTheme();
 
 renderSetup();newWind();drawT();show('train');setPhase('setup');if(!ST.ui.seen)obShow();setInterval(chipUpd,300);
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
