@@ -1,4 +1,4 @@
-const C='kh-v6',A=['./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const C='kh-v7',A=['./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 const CDN=/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//;
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
