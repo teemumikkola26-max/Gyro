@@ -92,7 +92,9 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
 .ringw{position:relative;width:180px;margin:10px auto}.ringw svg{width:100%}.rg{fill:none;stroke:var(--line);stroke-width:10}.rp{fill:none;stroke:var(--acc);stroke-width:10;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset .3s}.rt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--fh);font-size:20px;text-transform:uppercase;letter-spacing:.06em;padding:0 28px}
 .scr{display:flex;align-items:baseline;gap:8px}.scr b{font-family:var(--fh);font-size:56px;font-weight:600;color:var(--acc)}.scr span{color:var(--mut);font-size:20px}
 .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--acc);color:var(--acc);font-size:13px;font-weight:600;margin:4px 6px 0 0}
-.gi.lock{opacity:.5}.big2{font-size:18px;font-weight:600;margin-top:0}
+.gi.lock{opacity:.5}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:8;background:var(--card);border:1px solid var(--acc);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.45);font-size:14px}
+button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}.big2{font-size:18px;font-weight:600;margin-top:0}
 .bkh{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin:12px 0 4px}
 .bkr{display:grid;grid-template-columns:84px 1fr;gap:2px 10px;align-items:center;margin:10px 0;font-size:14px}.bkr>span{font-weight:600}
 .bkr i{display:block;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}.bkr i b{display:block;height:100%;background:var(--ok);border-radius:4px}.bkr i b.warn{background:var(--warn)}.bkr i b.bad{background:var(--bad)}
@@ -132,8 +134,9 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
   <div id="s1" class="card" hidden><p>Kohdista ase maalitaulua kohti ja pidä se täysin paikallaan (tuella), kun rengas täyttyy. Tästä asennosta tulee tähtäyksen nollapiste.</p>
    <div class="ringw"><svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" class="rg"/><circle id="ringp" cx="80" cy="80" r="70" class="rp" transform="rotate(-90 80 80)"/></svg><div class="rt" id="ringt">Ei vielä aloitettu</div></div>
    <button id="go" class="s big">Aloita kalibrointi</button><div class="bar" hidden><i id="gbar"></i></div><p id="st" class="m"></p>
-   <button id="z" class="p big" disabled>Vahvista nollapiste</button><p id="zst" class="m"></p><button class="lnk" id="skipcal" style="width:100%">Ohita toistaiseksi</button></div>
-  <div id="s2" class="card" hidden><p>Mikrofoni havaitsee kuivalaukauksen napsahduksen. Napsauta tyhjää asetta ja säädä herkkyys niin, että palkki ylittää keskikohdan.</p>
+   <button id="z" class="p big" disabled>Vahvista nollapiste</button><p id="zst" class="m"></p>
+   <button id="zs1" class="gh big" style="width:100%">Nollaa ampumalla</button><p class="m">Vaihtoehto: tähtää maalin keskelle ja laukaise kuivana. Nopea tapa nollata myös kesken harjoituksen.</p><button class="lnk" id="skipcal" style="width:100%">Ohita toistaiseksi</button></div>
+  <div id="s2" class="card" hidden><div class="warnb" id="zsban" hidden><span>Nollaus ampumalla: tähtää maalin keskelle ja laukaise (ase tyhjä). Napsahduksen hetken asento tulee nollapisteeksi.</span><button class="s sm" id="zsx">Peruuta</button></div><p>Mikrofoni havaitsee kuivalaukauksen napsahduksen. Napsauta tyhjää asetta ja säädä herkkyys niin, että palkki ylittää keskikohdan.</p>
    <button id="mic" class="big s">Mikrofoni päälle</button><div class="lvlbar"><i id="lvl"></i></div>
    <label>Herkkyys (pieni = herkkä)</label><input id="thr" type="range" min="1" max="100"><p id="ms0" class="m"></p>
    <button class="lnk" id="skipmic" style="width:100%">Ohita mikrofoni (käytän testilaukausta)</button></div>
@@ -145,6 +148,8 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
   <div class="warnb" id="m_warn" hidden><span id="m_wt"></span><button class="s sm" id="m_fix">Käynnistä anturit</button></div>
   <div class="card scope"><canvas id="rc" width="640" height="640"></canvas><div class="pills"><span class="pill" id="m_stab"></span><span class="pill" id="m_wind" hidden></span></div></div>
   <p class="prompt" id="m_pr"></p>
+  <div class="warnb" id="zsarm" hidden><span>Nollausvuoro: tähtää maalin keskelle ja laukaise. Tämä laukaus ei kirjaudu tulokseksi.</span><button class="s sm" id="zsx2">Peruuta</button></div>
+  <button id="zs2" class="gh" style="width:100%;min-height:44px;margin-bottom:8px">Nollaa ampumalla</button>
   <details class="card"><summary>Tornit, tila ja tekniset tiedot</summary>
    <div class="chips" style="margin-top:8px"><span class="chip" id="c_sen"></span><span class="chip" id="c_gy"></span><span class="chip" id="c_mic"></span><span class="chip" id="c_z"></span><span class="chip" id="c_lk"></span></div><p class="m" id="ms"></p>
    <div class="sp"><span>Matka</span><button class="s" data-a="dist:-50">−50</button><b class="v_dist"></b><button class="s" data-a="dist:50">+50</button></div>
@@ -186,6 +191,7 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
   <div class="card"><div class="sp"><span>Elevaatio</span><button class="s" data-a="ev:-10">−10</button><button class="s" data-a="ev:-1">−1</button><b id="g_ev"></b><button class="s" data-a="ev:1">+1</button><button class="s" data-a="ev:10">+10</button></div><div class="sp"><span>Tuuli</span><button class="s" data-a="wv:-10">−10</button><button class="s" data-a="wv:-1">−1</button><b id="g_wv"></b><button class="s" data-a="wv:1">+1</button><button class="s" data-a="wv:10">+10</button></div><div class="sp"><span>Zoom</span><button class="s" id="gz1">−</button><b id="g_zm"></b><button class="s" id="gz2">+</button></div></div>
   <details class="card" id="gdopeb" open><summary>Dope-kortti</summary><div id="gdope"></div></details>
   <div class="row"><button id="gz" class="s">Nollaa uudelleen</button><button id="gtst" class="s">Testilaukaus</button></div>
+  <div class="row"><button id="gzs" class="s">Nollaa ampumalla</button></div>
   <button id="gend" class="big s">Lopeta peli</button>
  </div>
  <div id="p_gsum" hidden><h2 id="gs_t"></h2><div class="card" id="gs_b"></div><button id="gagain" class="big">Pelaa uudelleen</button><button id="gmenu" class="big s">Valikkoon</button></div>
@@ -205,6 +211,7 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
      <div class="sp"><span>Tuuli</span><button class="s" data-ra="wv:-10">−10</button><button class="s" data-ra="wv:-1">−1</button><b id="r_wv"></b><button class="s" data-ra="wv:1">+1</button><button class="s" data-ra="wv:10">+10</button></div>
      <p class="m" id="r_hint"></p><p class="m" id="r_tgt"></p></div>
     <div class="row"><button class="s" data-rc="zero">Nollaa</button><button class="s" data-rc="newwind">Uusi tuuli</button></div>
+    <div class="row"><button class="s" data-rc="zshot">Nollaa ampumalla</button></div>
     <div class="row"><button class="s" data-rc="rep">Näytä jälki</button><button class="s" data-rc="tst">Testilaukaus</button></div>
     <div class="row"><button class="s" data-rc="end">Lopeta harjoitus</button><button id="r_disc" class="s warn">Katkaise yhteys</button></div>
    </div></div>
@@ -282,6 +289,7 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
  <button data-t="res"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Edistyminen</button>
  <button data-t="set"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Asetukset</button>
 </nav>
+<div id="toast" hidden></div>
 <div id="sg" hidden><div class="ob"><h2 style="margin-top:0">Turvatarkastus</h2><p>Onko ase tyhjä ja lipas pois? Elävät patruunat ovat toisessa tilassa.</p><button id="sg_ok" class="p">Kyllä, ase on tyhjä</button><button id="sg_no" class="lnk" style="width:100%">Peruuta</button></div></div>
 <div id="ob" hidden><div><h2 id="obt" style="margin-top:0"></h2><p id="obx" style="font-size:16px"></p><div class="row"><button id="obs" class="s">Ohita</button><button id="obn">Seuraava</button></div></div></div>
 
@@ -628,7 +636,7 @@ async function micToggle(){
 let ctx=null;
 const fm=(x,d=1)=>(x>=0?'+':'')+x.toFixed(d);
 function fire(ts){
- if(phase==='game'){gameFire(ts);return}if(phase==='gsum'||phase==='ana')return;
+ if(ZS.armed&&(phase==='shoot'||phase==='game'||phase==='prep')){doZeroShot(ts);return}if(phase==='game'){gameFire(ts);return}if(phase==='gsum'||phase==='ana')return;
  const h=trail;if(h.length<3){$('ms').textContent='Ei asentodataa: paina Käynnistä.';return}
  const i=h.findIndex(p=>p[0]>=ts),a=i<=0?h[0]:h[i-1],b=i<0?h[h.length-1]:h[i];
  const u=b[0]>a[0]?Math.max(0,Math.min(1,(ts-a[0])/(b[0]-a[0]))):0,L=j=>a[j]+(b[j]-a[j])*u,x=L(3),y=L(4),rl=L(5);
@@ -921,7 +929,7 @@ function lnkShot(en){
 function lkMsg(m){
  if(LK.role==='sens'){
   if(m.t==='adj')adj(m.k,+m.d);
-  else if(m.t==='cmd'){const c=m.c;if(c==='zero')$('z').onclick();else if(c==='newwind')newWind();else if(c==='rep')$('rep').onclick();else if(c==='tst')fire(performance.now());else if(c==='end'&&phase==='shoot')endSession()}
+  else if(m.t==='cmd'){const c=m.c;if(c==='zero')$('z').onclick();else if(c==='newwind')newWind();else if(c==='zshot')armZero();else if(c==='rep')$('rep').onclick();else if(c==='tst')fire(performance.now());else if(c==='end'&&phase==='shoot')endSession()}
  }else if(LK.role==='disp'){
   if(m.t==='st'){RM.st=m;rmDom()}
   else if(m.t==='aim'){const t=performance.now();RM.aim.push([t,m.x,m.y]);while(RM.aim.length&&t-RM.aim[0][0]>2500)RM.aim.shift();RM.roll=m.r}
@@ -1160,8 +1168,8 @@ function show(t){for(const id of['train','chal','gear','res','set'])$('t_'+id).h
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('hdt').textContent=TITLES[t];$('hstreak').hidden=t!=='train';
  if(t==='train')renderHome();if(t==='gear')renderGear();if(t==='res')renderRes();if(t==='chal')renderChal();if(t==='set')renderSet();window.scrollTo(0,0)}
-function setPhase(p){if(p==='setup'&&SS)leaveSession();phase=p;for(const x of['setup','custom','prep','shoot','ana','sum','remote','game','gsum'])$('p_'+x).hidden=x!==p;
- document.body.classList.toggle('run',['prep','shoot','ana','remote','game'].includes(p));document.body.classList.toggle('remote',p==='remote');lnkState();if(p==='setup')renderSetup();window.scrollTo(0,0)}
+function setPhase(p){if(p==='setup'&&SS)leaveSession();if(p!=='prep'&&p!=='shoot'&&p!=='game')ZS.armed=false;phase=p;for(const x of['setup','custom','prep','shoot','ana','sum','remote','game','gsum'])$('p_'+x).hidden=x!==p;
+ document.body.classList.toggle('run',['prep','shoot','ana','remote','game'].includes(p));document.body.classList.toggle('remote',p==='remote');lnkState();updateZsUi();if(p==='setup')renderSetup();window.scrollTo(0,0)}
 function renderSet(){$('df_b').classList.toggle('on',ST.ui.diff!=='x');$('df_x').classList.toggle('on',ST.ui.diff==='x');
  for(const k of['wi','aid','hap','remind'])$('tg_'+k).checked=ST.ui[k]!==false;
  $('set_cal').textContent=GB.ok?'Gyro kalibroitu '+Math.max(0,Math.round((performance.now()-GB.t)/60000))+' min sitten':'Ei kalibroitu tässä istunnossa. Kalibrointi tehdään jokaisen session alussa.';
@@ -1179,9 +1187,9 @@ function prepStart(){calSkip=false;micSkip=false;zT=0;setPhase('prep');showStep(
 const WT=['Kiinnitys','Kalibrointi · vaihe 1/2','Laukaisun tunnistus · vaihe 2/2'];
 function showStep(i){stepI=i;$('dots').innerHTML=[0,1,2].map(k=>'<span class="'+(k==i?'on':'')+'"></span>').join('');
  $('stt').textContent=WT[i];for(let k=0;k<3;k++)$('s'+k).hidden=k!==i;
- $('pn').textContent=i==2?'Aloita ammunta':'Seuraava';updateWiz()}
+ $('pn').textContent=i==2?'Aloita ammunta':'Seuraava';updateWiz();updateZsUi()}
 function updateWiz(){if(phase!=='prep')return;let ok=true;
- if(stepI===1)ok=zT>0&&running;$('pn').disabled=!ok;
+ if(stepI===1)ok=zT>0&&running;if(stepI===2)ok=!ZS.armed;$('pn').disabled=!ok;
  $('z').disabled=!(running&&(GB.ok||calSkip||mode!=='own'))}
 function quickStart(){if(!running)$('go').onclick();startAny()}
 function startShoot(){shootT0=performance.now();ser=[];frozen=null;drawT();lkSend({t:'reset'});if(!SS)SS={kind:'free',n:0,total:0,shots:[],prev:null,adope:false};
@@ -1316,7 +1324,7 @@ function chipUpd(){
  const CH={sen:[alive?'ok':'bad','Anturi '+(alive?'OK':'ei dataa')],
   gy:[mode!=='own'?'warn':GB.ok?'ok':GB.cal?'warn':'bad',mode!=='own'?'Gyro: ei kalibrointia':GB.ok?'Gyro kalibroitu':GB.cal?'Gyro kalibroidaan':'Gyro ei kalibroitu'],
   mic:[micOn?'ok':'warn',micOn?'Mikrofoni päällä':'Mikrofoni pois'],
-  z:[!zT?'bad':(age>60||ex>=1)?'warn':'ok',!zT?'Ei nollattu':'Nollaus '+Math.round(age)+' s'+(ex>0?' · ±'+ex.toFixed(1)+' mil':'')]};
+  z:ZS.armed?['warn','Nollaus odottaa laukausta']:[!zT?'bad':(age>60||ex>=1)?'warn':'ok',!zT?'Ei nollattu':'Nollaus '+Math.round(age)+' s'+(ex>0?' · ±'+ex.toFixed(1)+' mil':'')]};
  if(phase==='shoot'){
   for(const k of['sen','gy','mic','z'])setChip('c_'+k,CH[k][0],CH[k][1]);setChip('c_lk',lk?'ok':'warn',lk?'Näyttö yhdistetty':'Ei näyttöä');
   $('m_l').textContent=V('dist')+' m';
@@ -1328,7 +1336,7 @@ function chipUpd(){
   $('m_stab').textContent='Vakaus: '+sl;$('m_stab').className='pill '+(st==null?'':st>=70?'ok':st>=50?'warn':'bad');
   const showW=ST.ui.wi!==false&&ST.ui.diff!=='x'&&SS&&SS.kind==='daily';
   $('m_wind').hidden=!showW;if(showW)$('m_wind').textContent='Tuuli '+WND.ws.toFixed(1)+' m/s '+(WDN[Math.round(WND.wd)||12]||'');
-  $('m_pr').textContent=SS&&SS.kind==='daily'&&ST.ui.diff!=='x'?'Pidä piste keskellä, hengitä ulos ja laukaise.':'Pidä piste keskellä ja laukaise, kun olet valmis.'}
+  $('m_pr').textContent=ZS.armed?'Tähtää maalin keskelle ja laukaise. Tämä laukaus nollaa tähtäyspisteen.':SS&&SS.kind==='daily'&&ST.ui.diff!=='x'?'Pidä piste keskellä, hengitä ulos ja laukaise.':'Pidä piste keskellä ja laukaise, kun olet valmis.'}
  if(lk&&now-LK.lastCh>600){LK.lastCh=now;lkSend({t:'ch',...CH})}
  if(phase==='prep'){
   const pr=GB.cal?Math.min(1,(now-GB.cal.t0)/GCAL):GB.ok?1:0;$('ringp').style.strokeDashoffset=(440*(1-pr)).toFixed(1);
@@ -1344,6 +1352,28 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 $('wxstd').addEventListener('click',()=>{ST.wxSet=true;save();renderPreflight()});
 $('wxb').addEventListener('click',()=>setTimeout(()=>{if(/Haettu/.test($('wxs').textContent)){ST.wxSet=true;save();renderPreflight()}},4000));
 $('m_fix').onclick=()=>$('go').onclick();
+
+// --- Nollaus ampumalla: napsahduksen hetken asento tulee nollapisteeksi
+const ZS={armed:false};let toastT=null;
+function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},4500)}
+function updateZsUi(){$('zsarm').hidden=!(ZS.armed&&phase==='shoot');$('zsban').hidden=!(ZS.armed&&phase==='prep');for(const id of['zs2','gzs']){const e=$(id);if(e)e.classList.toggle('on',ZS.armed)}}
+function armZero(){ZS.armed=true;toast('Nollausvuoro: tähtää maalin keskelle ja laukaise.');updateZsUi();updateWiz()}
+function disarmZero(){ZS.armed=false;updateZsUi();updateWiz()}
+function doZeroShot(ts){
+ ZS.armed=false;
+ if(trail.length<3){toast('Ei asentodataa: nollaus ei onnistunut. Käynnistä anturit ja yritä uudelleen.');updateZsUi();updateWiz();return}
+ const a=aimAt(ts),sh=Math.hypot(a[0],a[1]);
+ z0.y=wrap(z0.y+a[0]/MIL);z0.p=z0.p+a[1]/MIL;
+ trail=[];frozen=null;zT=ts;OE.t=0;
+ const dw=(Math.abs(a[0])>.05?(a[0]>=0?' oikealle':' vasemmalle'):'')+(Math.abs(a[1])>.05?(a[1]>=0?' ylös':' alas'):'');
+ toast('Nollattu laukauksella. '+(sh>.05?'Nollapiste siirtyi '+sh.toFixed(1)+' mil'+dw+'.':'Nollapiste pysyi lähes samana.'));
+ try{ST.ui.hap!==false&&navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+ if(ST.ui.snd!=='off')beep(true);
+ updateZsUi();updateWiz();lnkState()}
+$('zs1').onclick=()=>{armZero();showStep(2)};
+$('zsx').onclick=disarmZero;$('zsx2').onclick=disarmZero;
+$('zs2').onclick=()=>{ZS.armed?disarmZero():armZero()};
+$('gzs').onclick=()=>{ZS.armed?disarmZero():armZero()};
 
 ST.ses.tm='free';
 (function(){const T=/\d\.\d/,R=/(\d)\.(\d)/g,SK=/^(SCRIPT|STYLE|TEXTAREA|CANVAS|INPUT|SELECT|OPTION)$/;
