@@ -94,6 +94,9 @@ button.gh{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(
 .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--acc);color:var(--acc);font-size:13px;font-weight:600;margin:4px 6px 0 0}
 .gi.lock{opacity:.5}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:8;background:var(--card);border:1px solid var(--acc);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.45);font-size:14px}
+
+/* UX pass: clearer preparation and calmer practice controls */
+.prep-head{padding:4px 2px 0}.prep-head .lbl{margin-bottom:2px}.prep-head h2{margin:4px 0 2px;font-size:clamp(21px,5vw,26px)}.prep-head .dots{margin:10px 0}.prep-card{position:relative;padding:18px 16px}.prep-card h3{margin:2px 0 10px;color:var(--fg);font-size:17px;text-transform:none;letter-spacing:0}.prep-card p{line-height:1.55}.step-icon{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:var(--soft);border:1px solid var(--line);color:var(--acc);font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:12px}.prep-card .big{margin-top:14px}.prep-nav{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:8px 0;background:linear-gradient(transparent,var(--bg) 28%);z-index:2}.prep-nav button{min-height:50px}.prep-nav #pn{flex:1.2}.scope{padding:8px}.scope canvas{touch-action:manipulation}.prompt{font-weight:600;line-height:1.5;padding:0 8px}.safe{font-size:12px}.warnb{line-height:1.45}@media(max-width:380px){body{padding-left:10px;padding-right:10px}.prep-card{padding:14px}.prep-nav{gap:8px}}
 button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}.big2{font-size:18px;font-weight:600;margin-top:0}
 .bkh{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin:12px 0 4px}
 .bkr{display:grid;grid-template-columns:84px 1fr;gap:2px 10px;align-items:center;margin:10px 0;font-size:14px}.bkr>span{font-weight:600}
@@ -129,18 +132,18 @@ button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}
  </div>
 
  <div id="p_prep" hidden>
-  <div class="dots" id="dots"></div><h2 id="stt"></h2>
-  <div id="s0" class="card"><p><b>Ase on aina tyhjä ja lipas pois.</b></p><p>Kiinnitä puhelin jäykästi aseeseen: näyttö ylöspäin ja yläreuna piipun suuntaan. Muut asennot valitaan kohdassa Asetukset → Anturit.</p><button class="p" id="s0n">Selvä, jatka</button><button class="lnk" id="skipall" style="width:100%">Ohita opastus</button></div>
-  <div id="s1" class="card" hidden><p>Kohdista ase maalitaulua kohti ja pidä se täysin paikallaan (tuella), kun rengas täyttyy. Tästä asennosta tulee tähtäyksen nollapiste.</p>
+  <div class="prep-head"><div class="lbl">Harjoituksen valmistelu</div><div class="dots" id="dots" aria-label="Valmistelun vaiheet"></div><h2 id="stt"></h2><p id="stephelp" class="m">Suorita vaiheet järjestyksessä. Tähtäyksen nollapiste asetetaan jokaisen harjoituksen alussa.</p></div>
+  <div id="s0" class="card prep-card"><div class="step-icon">01</div><h3>Turvallisuus ja kiinnitys</h3><p><b>Varmista aina, että ase on tyhjä ja lipas poistettu.</b></p><p>Kiinnitä puhelin tukevasti. Tarkista, ettei se pääse liikkumaan harjoituksen aikana. Näytön suunta ja muut kiinnitysasetukset löytyvät kohdasta Asetukset → Anturit.</p><button class="p big" id="s0n">Kiinnitys tarkistettu</button><button class="lnk" id="skipall" style="width:100%">Puhelin on jo kiinnitetty – jatka</button></div>
+  <div id="s1" class="card prep-card" hidden><div class="step-icon">02</div><h3>Anturin tarkistus ja tähtäyksen nollaus</h3><p>Pidä ase turvallisesti suunnattuna harjoitusmaalia kohti ja täysin paikallaan. Gyroskoopin kalibrointi mittaa anturin nollavirhettä; sen jälkeen asetat erikseen tämän harjoituksen tähtäyksen nollapisteen.</p>
    <div class="ringw"><svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" class="rg"/><circle id="ringp" cx="80" cy="80" r="70" class="rp" transform="rotate(-90 80 80)"/></svg><div class="rt" id="ringt">Ei vielä aloitettu</div></div>
-   <button id="go" class="s big">Aloita kalibrointi</button><div class="bar" hidden><i id="gbar"></i></div><p id="st" class="m"></p>
-   <button id="z" class="p big" disabled>Vahvista nollapiste</button><p id="zst" class="m"></p>
-   <button id="zs1" class="gh big" style="width:100%">Nollaa ampumalla</button><p class="m">Vaihtoehto: tähtää maalin keskelle ja laukaise kuivana. Nopea tapa nollata myös kesken harjoituksen.</p><button class="lnk" id="skipcal" style="width:100%">Ohita toistaiseksi</button></div>
-  <div id="s2" class="card" hidden><div class="warnb" id="zsban" hidden><span>Nollaus ampumalla: tähtää maalin keskelle ja laukaise (ase tyhjä). Napsahduksen hetken asento tulee nollapisteeksi.</span><button class="s sm" id="zsx">Peruuta</button></div><p>Mikrofoni havaitsee kuivalaukauksen napsahduksen. Napsauta tyhjää asetta ja säädä herkkyys niin, että palkki ylittää keskikohdan.</p>
+   <button id="go" class="s big">Kalibroi gyroskooppi</button><div class="bar" hidden><i id="gbar"></i></div><p id="st" class="m"></p>
+   <button id="z" class="p big" disabled>Aseta tähtäyksen nollapiste</button><p id="zst" class="m"></p>
+   <button id="zs1" class="gh big" style="width:100%">Aseta nollapiste kuivalaukauksella</button><p class="m">Vaihtoehtoinen tapa: mikrofoni tunnistaa kuivalaukauksen ja tallentaa laukaisuhetken asennon nollapisteeksi.</p><button class="lnk" id="skipcal" style="width:100%">Ohita anturikalibrointi (ei suositella)</button></div>
+  <div id="s2" class="card prep-card" hidden><div class="step-icon">03</div><h3>Laukaisun tunnistus</h3><p class="m">Tämä vaihe on valinnainen. Mikrofoni auttaa tunnistamaan kuivalaukauksen automaattisesti; voit myös käyttää testilaukausta.</p><div class="warnb" id="zsban" hidden><span>Nollaus kuivalaukauksella: tähtää maalitaulun keskelle ja laukaise. Laukaisuhetken asento asetetaan nollapisteeksi.</span><button class="s sm" id="zsx">Peruuta</button></div><p>Mikrofoni voi tunnistaa kuivalaukauksen napsahduksen. Kytke se päälle ja tee tarvittaessa testi; säädä herkkyyttä, jos tunnistus ei toimi luotettavasti.</p>
    <button id="mic" class="big s">Mikrofoni päälle</button><div class="lvlbar"><i id="lvl"></i></div>
    <label>Herkkyys (pieni = herkkä)</label><input id="thr" type="range" min="1" max="100"><p id="ms0" class="m"></p>
-   <button class="lnk" id="skipmic" style="width:100%">Ohita mikrofoni (käytän testilaukausta)</button></div>
-  <div class="row"><button id="pb" class="s">Takaisin</button><button id="pn">Seuraava</button></div>
+   <button class="lnk" id="skipmic" style="width:100%">Jatka ilman mikrofonia</button></div>
+  <div class="row prep-nav"><button id="pb" class="s">← Takaisin</button><button id="pn">Seuraava vaihe →</button></div>
  </div>
 
  <div id="p_shoot" hidden>
@@ -290,7 +293,7 @@ button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}
  <button data-t="set"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Asetukset</button>
 </nav>
 <div id="toast" hidden></div>
-<div id="sg" hidden><div class="ob"><h2 style="margin-top:0">Turvatarkastus</h2><p>Onko ase tyhjä ja lipas pois? Elävät patruunat ovat toisessa tilassa.</p><button id="sg_ok" class="p">Kyllä, ase on tyhjä</button><button id="sg_no" class="lnk" style="width:100%">Peruuta</button></div></div>
+<div id="sg" hidden><div class="ob"><h2 style="margin-top:0">Turvatarkastus</h2><p>Varmista ennen jatkamista: ase on täysin tyhjä, lipas on poistettu ja elävät patruunat ovat eri tilassa.</p><button id="sg_ok" class="p">Vahvistan: ase on tyhjä</button><button id="sg_no" class="lnk" style="width:100%">Peruuta</button></div></div>
 <div id="ob" hidden><div><h2 id="obt" style="margin-top:0"></h2><p id="obx" style="font-size:16px"></p><div class="row"><button id="obs" class="s">Ohita</button><button id="obn">Seuraava</button></div></div></div>
 
 <div id="legacy" hidden><div id="stg"></div><div id="su_edit"></div><div id="su_psel"></div><div id="sum1"></div></div>
@@ -499,8 +502,8 @@ $('go').onclick=async()=>{
  window.removeEventListener('deviceorientation',onO);window.addEventListener('deviceorientation',onO);
  running=true;await startSrc();
  try{navigator.wakeLock&&navigator.wakeLock.request('screen')}catch(e){}
- if(mode==='own'){GB.cal={t0:performance.now()};GB.boot=true;$('st').textContent='Kalibroidaan gyroa 5 s: pidä ase täysin paikallaan (tuella tai säkillä).'}
- else $('st').textContent='Käynnissä. Aseta ase tähtäysasentoon ja paina Nollaa.';
+ if(mode==='own'){GB.cal={t0:performance.now()};GB.boot=true;$('st').textContent='Kalibroidaan gyroskooppia 5 s. Pidä puhelin ja ase täysin paikallaan tuen päällä.'}
+ else $('st').textContent='Anturit käynnissä. Aseta tähtäys vakaaksi ja paina sitten “Aseta tähtäyksen nollapiste”.';
  setTimeout(()=>{if(!R)$('st').textContent='Ei anturidataa. Avaa sivu Chromessa suojatulla (https) yhteydellä ja salli liiketunnistimet.'},2500);
 };
 const f2=x=>(x>=0?'+':'')+x.toFixed(2);
@@ -767,7 +770,7 @@ function chipUpd(){
  if(lk&&now-LK.lastCh>600){LK.lastCh=now;lkSend({t:'ch',...CH})}
  if(phase==='prep'){
   $('gbar').style.width=(GB.cal?Math.min(100,(now-GB.cal.t0)/GCAL*100):GB.ok?100:0)+'%';
-  $('zst').textContent=zT?'Nollattu ✓ ('+Math.round(age)+' s sitten)':'Ei vielä nollattu.';
+  $('zst').textContent=zT?'Nollapiste asetettu ✓ ('+Math.round(age)+' s sitten)':'Nollapistettä ei ole vielä asetettu. Tämä tehdään jokaisessa harjoituksessa.';
   $('ms0').textContent=$('ms').textContent;updateWiz()}}
 // --- Tapahtumat
 document.addEventListener('click',e=>{
@@ -1172,7 +1175,7 @@ function setPhase(p){if(p==='setup'&&SS)leaveSession();if(p!=='prep'&&p!=='shoot
  document.body.classList.toggle('run',['prep','shoot','ana','remote','game'].includes(p));document.body.classList.toggle('remote',p==='remote');lnkState();updateZsUi();if(p==='setup')renderSetup();window.scrollTo(0,0)}
 function renderSet(){$('df_b').classList.toggle('on',ST.ui.diff!=='x');$('df_x').classList.toggle('on',ST.ui.diff==='x');
  for(const k of['wi','aid','hap','remind'])$('tg_'+k).checked=ST.ui[k]!==false;
- $('set_cal').textContent=GB.ok?'Gyro kalibroitu '+Math.max(0,Math.round((performance.now()-GB.t)/60000))+' min sitten':'Ei kalibroitu tässä istunnossa. Kalibrointi tehdään jokaisen session alussa.';
+ $('set_cal').textContent=GB.ok?'Gyroskooppi kalibroitu '+Math.max(0,Math.round((performance.now()-GB.t)/60000))+' min sitten':'Gyroskooppia ei ole kalibroitu tässä istunnossa.';
  $('set_lk').textContent=LK.open?'Yhdistetty ('+(LK.role==='sens'?'anturi':'näyttö')+')':'Ei yhdistettynä'}
 // --- istunnon aloitus
 function safetyGate(cb){if(ST.ui.remind===false){cb();return}$('sg_ok').onclick=()=>{$('sg').hidden=true;cb()};$('sg_no').onclick=()=>{$('sg').hidden=true};$('sg').hidden=false}
@@ -1184,9 +1187,9 @@ function beginSession(kind,opt){
  else{SS={kind:'stage',n:0,total:0,shots:[],prev,adope:false}}
  save();prepStart()}
 function prepStart(){calSkip=false;micSkip=false;zT=0;setPhase('prep');showStep(ST.ui.mounted?1:0)}
-const WT=['Kiinnitys','Kalibrointi · vaihe 1/2','Laukaisun tunnistus · vaihe 2/2'];
+const WT=['Kiinnitys','Anturi ja nollaus','Laukaisun tunnistus'];
 function showStep(i){stepI=i;$('dots').innerHTML=[0,1,2].map(k=>'<span class="'+(k==i?'on':'')+'"></span>').join('');
- $('stt').textContent=WT[i];for(let k=0;k<3;k++)$('s'+k).hidden=k!==i;
+ $('stt').textContent=(i+1)+' / 3 · '+WT[i];$('stephelp').textContent=i===0?'Tarkista turvallisuus ja puhelimen kiinnitys.':i===1?'Kalibrointi tarkistaa gyroskoopin mittausvirheen. Sen jälkeen aseta tämän harjoituksen tähtäyksen nollapiste.':'Mikrofoni on valinnainen. Voit jatkaa myös ilman automaattista laukaisun tunnistusta.';for(let k=0;k<3;k++)$('s'+k).hidden=k!==i;
  $('pn').textContent=i==2?'Aloita ammunta':'Seuraava';updateWiz();updateZsUi()}
 function updateWiz(){if(phase!=='prep')return;let ok=true;
  if(stepI===1)ok=zT>0&&running;if(stepI===2)ok=!ZS.armed;$('pn').disabled=!ok;
@@ -1295,7 +1298,7 @@ $('startc').onclick=()=>safetyGate(()=>beginSession('free'));
 $('cust_back').onclick=()=>setPhase('setup');
 $('k_edit').onclick=()=>show('gear');$('gear_back').onclick=()=>show('train');
 $('ch_dgo').onclick=()=>{show('train');safetyGate(()=>beginSession('daily'))};
-$('skipall').onclick=()=>{ST.ui.mounted=true;save();quickStart()};
+$('skipall').onclick=()=>{ST.ui.mounted=true;save();showStep(1)};
 $('s0n').onclick=()=>{ST.ui.mounted=true;save();showStep(1)};
 $('skipcal').onclick=async()=>{calSkip=true;if(!running){await $('go').onclick();GB.cal=null;GB.boot=false;$('st').textContent='Kalibrointi ohitettu. Vaaka-asema voi ajautua.'}updateWiz()};
 $('pb').onclick=()=>{if(stepI<=1&&!ST.ui.mounted||stepI===0)setPhase('setup');else if(stepI===1)setPhase('setup');else showStep(stepI-1)};
