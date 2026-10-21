@@ -274,6 +274,7 @@ button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}
   <canvas id="c3" width="720" height="480" style="margin-top:10px"></canvas></details></details>
  <h3>Kaksi laitetta</h3><div class="card">
   <p class="m" id="lk_st">Ei yhteyttä. Toinen laite voi toimia näyttönä (esim. tabletti), kun anturilaite (puhelin) on aseessa.</p>
+  <p class="m">Vinkki: avaa paritus molemmissa laitteissa ennen koodien siirtämistä. Pidä paritusnäkymä auki, kunnes yhteys on muodostunut. Tekstikoodin voi kopioida ja liittää – sitä ei tarvitse kirjoittaa käsin.</p>
   <div class="row"><button id="lk_sens" class="s">Tämä on anturi (aseessa)</button><button id="lk_disp" class="s">Tämä on näyttö</button></div>
   <div id="lk_pair" hidden><p id="lk_step"></p>
    <canvas id="lk_qr" width="480" height="480" hidden></canvas>
@@ -872,7 +873,7 @@ async function unpack(code){
  if(k==='KH1:'){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u);w.close();txt=new TextDecoder().decode(await new Response(ds.readable).arrayBuffer())}
  else if(k==='KH0:')txt=new TextDecoder().decode(u);else throw new Error('tuntematon koodi');
  const o=JSON.parse(txt);return{type:o.t,sdp:o.s}}
-const gathered=(pc,ms=2500)=>new Promise(res=>{if(pc.iceGatheringState==='complete')return res();const t=setTimeout(res,ms);pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete'){clearTimeout(t);res()}})});
+const gathered=(pc,ms=10000)=>new Promise(res=>{if(pc.iceGatheringState==='complete')return res();const done=()=>{clearTimeout(t);pc.removeEventListener('icegatheringstatechange',check);res()};const check=()=>{if(pc.iceGatheringState==='complete')done()};const t=setTimeout(done,ms);pc.addEventListener('icegatheringstatechange',check)});
 async function primeCam(){try{const s=await navigator.mediaDevices.getUserMedia({video:true});s.getTracks().forEach(t=>t.stop())}catch(e){}}
 function loadQR(){return new Promise(res=>{if(typeof qrcode==='function')return res(true);let i=0;const next=()=>{if(i>=QRURLS.length)return res(false);const sc=document.createElement('script');sc.src=QRURLS[i++];sc.crossOrigin='anonymous';sc.onload=()=>typeof qrcode==='function'?res(true):next();sc.onerror=next;document.head.appendChild(sc)};next()})}
 async function showQR(code){
@@ -900,7 +901,7 @@ function lkEnd(){const was=LK.role;lkReset();LK.role=null;$('lk_end').hidden=tru
 function lkUp(){LK.open=true;$('lk_pair').hidden=true;$('lk_end').hidden=false;stopScan();
  if(LK.role==='sens'){lkStat('Yhdistetty näyttölaitteeseen ✓');lnkState()}
  else{lkStat('Yhdistetty anturilaitteeseen ✓');RM.aim=[];RM.ser=[];RM.last=null;RM.fz=null;RM.ch={};setPhase('remote');show('train');rmDom()}}
-function newPC(){const pc=new RTCPeerConnection(ICE);pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='failed'||s==='closed')lkDown()};pc.ondatachannel=e=>wireCh(e.channel);return pc}
+function newPC(){const pc=new RTCPeerConnection(ICE);pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='failed'){if(LK.open)lkDown();else lkStat('Yhteyttä ei saatu muodostettua. Paritusnäkymä on jätetty auki, jotta koodit eivät katoa. Käynnistä paritus uudelleen painamalla tämän laitteen roolipainiketta ja tee koodinvaihto molemmissa laitteissa uudelleen.')}else if(s==='closed'&&LK.open)lkDown()};pc.ondatachannel=e=>wireCh(e.channel);return pc}
 function wireCh(ch){LK.ch=ch;ch.onopen=lkUp;ch.onclose=lkDown;ch.onmessage=e=>{try{lkMsg(JSON.parse(e.data))}catch(x){}}}
 async function lkStartDisp(){
  lkReset();LK.role='disp';$('lk_pair').hidden=false;$('lk_step').textContent='Valmistellaan yhteyttä...';
