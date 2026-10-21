@@ -264,7 +264,7 @@ button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}
   <div class="row"><button id="sndt" class="s">Testaa ääni</button></div><p class="m" id="sndm">Korkea kaksoisääni = osuma, matala = ohi.</p></div>
  <h3>Näyttö</h3><div class="card"><label>Teema</label><select id="theme"><option value="dark">Tumma (oletus)</option><option value="light">Vaalea (ulkokäyttö)</option><option value="auto">Laitteen asetuksen mukaan</option></select><label style="margin:12px 0 0"><input id="hintc" type="checkbox">Näytä dope-vihje ampuessa</label></div>
  <h3>Anturit</h3><details class="card"><summary>Edistyneet anturiasetukset</summary>
-  <label>Anturilähde</label><select id="src"><option value="own">Oma fuusio (gyro + kiihtyvyys)</option><option value="api">Sensor API (kvaternioni)</option><option value="do">deviceorientation</option></select>
+  <label>Anturilähde</label><select id="src"><option value="own">Oma fuusio (gyro + kiihtyvyys)</option><option value="api">Sensor API (absoluuttinen suunta, jos tuettu)</option><option value="do">deviceorientation</option></select>
   <label style="margin-top:10px">Näytön pehmennys</label><select id="sm"><option value="0">Ei</option><option value="1">Kevyt</option><option value="2">Vahva</option></select>
   <label style="margin-top:10px">Aseen eteen (piippulinja)</label><select id="fw"></select>
   <label style="margin-top:10px">Aseen ylä (kiikarin puoli)</label><select id="up"></select>
@@ -354,7 +354,7 @@ function mat(a,b,g){const cA=Math.cos(a),sA=Math.sin(a),cB=Math.cos(b),sB=Math.s
  return[[cA*cG-sA*sB*sG,-cB*sA,cG*sA*sB+cA*sG],[cG*sA+cA*sB*sG,cA*cB,sA*sG-cA*cG*sB],[-cB*sG,sB,cB*cG]]}
 const mul=(M,v)=>[0,1,2].map(i=>M[i][0]*v[0]+M[i][1]*v[1]+M[i][2]*v[2]);
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
-let Rd=null,sens=null,flip=null,lastP=null,steps=[],srcName='deviceorientation',mode='own',running=false;
+let Rd=null,sens=null,flip=null,lastP=null,steps=[],srcName='deviceorientation',mode='own',running=false,sensorKind='relative';
 function qmat(q){const[x,y,z,w]=q;return[[1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w)],[2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w)],[2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)]]}
 const tr=M=>[0,1,2].map(i=>[M[0][i],M[1][i],M[2][i]]);
 function onO(e){
@@ -364,7 +364,7 @@ function onO(e){
 }
 function onS(){
  if(mode!=='api'||!sens||!sens.quaternion)return;
- srcName='Sensor API (täysi tarkkuus)';
+ srcName=sensorKind==='absolute'?'Sensor API (absoluuttinen suunta / magnetometri)':'Sensor API (suhteellinen suunta)';
  const M=qmat(sens.quaternion);
  if(flip===null&&Rd){const a=Rd[2],b=M[2],c=[M[0][2],M[1][2],M[2][2]],d1=a[0]*b[0]+a[1]*b[1]+a[2]*b[2],d2=a[0]*c[0]+a[1]*c[1]+a[2]*c[2];if(Math.abs(d1-d2)>.1)flip=d2>d1}
  apply(flip?tr(M):M);
@@ -487,9 +487,27 @@ async function startSrc(){
   const ps=await Promise.all(['accelerometer','gyroscope'].map(n=>navigator.permissions.query({name:n}).catch(()=>({state:'granted'}))));
   if(ps.some(p=>p.state==='denied')){mode='do';return}
   if(mode==='api'){
-   if(typeof RelativeOrientationSensor==='undefined'){mode='do';return}
-   sens=new RelativeOrientationSensor({frequency:60,referenceFrame:'device'});
-   sens.addEventListener('reading',onS);sens.addEventListener('error',()=>{mode='do';srcName='deviceorientation'});sens.start();
+   // Prefer absolute orientation when supported: its magnetometer reference can limit yaw drift.
+   // Magnetic interference can make it worse near metal, so retain relative orientation as fallback.
+   const attachOrientationSensor=(absolute)=>{
+    const C=absolute?window.AbsoluteOrientationSensor:window.RelativeOrientationSensor;
+    if(typeof C==='undefined')return false;
+    const candidate=new C({frequency:60,referenceFrame:'device'});
+    candidate.addEventListener('reading',onS);
+    candidate.addEventListener('error',()=>{
+     if(absolute&&typeof window.RelativeOrientationSensor!=='undefined'){
+      try{candidate.stop()}catch(e){}
+      try{sens=new RelativeOrientationSensor({frequency:60,referenceFrame:'device'});sensorKind='relative';sens.addEventListener('reading',onS);sens.addEventListener('error',()=>{mode='do';srcName='deviceorientation'});sens.start()}catch(e){mode='do';srcName='deviceorientation'}
+     }else{mode='do';srcName='deviceorientation'}
+    });
+    candidate.start();sens=candidate;sensorKind=absolute?'absolute':'relative';return true;
+   };
+   let started=false;
+   if(typeof window.AbsoluteOrientationSensor!=='undefined'){
+    try{started=attachOrientationSensor(true)}catch(e){started=false}
+   }
+   if(!started){try{started=attachOrientationSensor(false)}catch(e){started=false}}
+   if(!started){mode='do';return}
   }else{
    if(typeof Gyroscope==='undefined'||typeof Accelerometer==='undefined'){mode='do';return}
    acS=new Accelerometer({frequency:60});gyS=new Gyroscope({frequency:60});
