@@ -174,6 +174,11 @@ button.gh.on,button.s.on{box-shadow:inset 0 0 0 2px var(--acc);color:var(--acc)}
   <details class="card"><summary>Näytä erittely</summary><div id="rs" style="margin-top:8px"></div>
    <div class="turrets"><div class="tur"><span>Elevaatio</span><b id="cE">–</b><i>klikkiä</i></div><div class="tur"><span>Tuuli</span><b id="cW">–</b><i>klikkiä</i></div></div>
    <p id="rd" class="m"></p><div id="bk"></div><canvas id="tc" width="640" height="640"></canvas></details>
+  <div class="card" id="an_auto" style="text-align:center;padding:12px;margin-bottom:10px">
+   <div class="lbl">Seuraava laukaus alkaa automaattisesti</div>
+   <div class="h big" id="an_count" aria-live="polite">3</div>
+   <button class="s" id="an_review" style="width:100%">Tarkastele tätä laukausta</button>
+  </div>
   <button class="p big" id="an_next">Seuraava laukaus</button>
  </div>
 
@@ -1128,7 +1133,7 @@ function dailyCfg(){
 const wk=t=>{const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
 function avgBy(f,from,to){const L=ST.hist.filter(s=>s.t>=from&&s.t<to&&s.jerk!=null);return L.length?L.reduce((a,s)=>a+f(s),0)/L.length:null}
 function touchStreak(){const P=ST.prog,td=dk();if(P.lastDay===td)return;const y=new Date();y.setDate(y.getDate()-1);P.streak=(P.lastDay===dkOf(y))?P.streak+1:1;P.lastDay=td}
-let SS=null,anaData=null,lastCoach='',rp=null,shootT0=0,PFA=[];
+let SS=null,anaData=null,lastCoach='',rp=null,shootT0=0,PFA=[],anaCountdown=null,anaCountdownTick=null,anaReviewMode=false;
 if(ST.sesBackup){Object.assign(ST.ses,ST.sesBackup);delete ST.sesBackup;save()}
 const WEEK=[
  {id:'jerk',n:'Rauhallinen liipaisin',d:'Nykäys alle 0,6 mrad kolmessa laukauksessa',goal:3,xp:100,cnt:s=>s.jerk!=null&&s.jerk<.6},
@@ -1211,7 +1216,17 @@ function afterShot(en,c){
  if(SS){SS.n++;SS.shots.push(en)}
  save();
  if(SS&&ST.ui.ana!==false)openAna(en,bl,co,c);else afterAna()}
-function afterAna(){if(SS&&SS.total&&SS.n>=SS.total)finishSession();else{nextShotSetup();setPhase('shoot')}}
+function stopAnaCountdown(){if(anaCountdown){clearTimeout(anaCountdown);anaCountdown=null}if(anaCountdownTick){clearInterval(anaCountdownTick);anaCountdownTick=null}}
+function startAnaCountdown(){
+ stopAnaCountdown();anaReviewMode=false;
+ $('an_auto').hidden=false;$('an_count').textContent='3';$('an_review').textContent='Tarkastele tätä laukausta';
+ $('an_next').hidden=true;
+ const deadline=Date.now()+3000;
+ anaCountdownTick=setInterval(()=>{const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('an_count').textContent=String(left)},100);
+ anaCountdown=setTimeout(()=>{stopAnaCountdown();if(!anaReviewMode)afterAna()},3000)
+}
+function showAnaForReview(){stopAnaCountdown();anaReviewMode=true;$('an_auto').hidden=true;$('an_next').hidden=false}
+function afterAna(){stopAnaCountdown();if(SS&&SS.total&&SS.n>=SS.total)finishSession();else{nextShotSetup();setPhase('shoot')}}
 function coach(en,bl,c){
  const Dm=c.Dm,R=c.R/Dm*1000,ck=ckMil(),aimX=bl.aimX||0,aimY=bl.aimY||0,aim=Math.hypot(aimX,aimY),jerk=bl.jerk||0,dopeY=bl.dopeY||0,windX=bl.windX||0,cant=Math.hypot(bl.cantX||0,bl.cantY||0);
  const dir=(x,y)=>{const v=(Math.abs(y)>.5*Math.abs(x)||Math.abs(x)<.05)?(y>=0?'ylös':'alas'):'',h=(Math.abs(x)>.5*Math.abs(y)||Math.abs(y)<.05)?(x>=0?'oikealle':'vasemmalle'):'';return(v+' '+h).trim()};
@@ -1232,7 +1247,7 @@ function openAna(en,bl,co,c){
  $('an_t').textContent=co.t;$('an_b').textContent=co.b;
  $('an_s1').textContent=en.stab+' %';$('an_s2').textContent=en.jerk.toFixed(1)+' mrad';$('an_s3').textContent=(en.wx>=0?'+':'−')+Math.abs(en.wx).toFixed(1);
  $('an_next').textContent=(SS.total&&SS.n>=SS.total)?'Yhteenveto':'Seuraava laukaus';
- setPhase('ana');startReplay(1)}
+ setPhase('ana');startReplay(1);startAnaCountdown()}
 function startReplay(slow){cancelAnimationFrame(rp);const t0=performance.now(),dur=slow?2800:900,step=n=>{const p=Math.min(1,(n-t0)/dur);drawTrace(p);if(p<1)rp=requestAnimationFrame(step)};step(t0)}
 function drawTrace(p){
  const d=anaData;if(!d)return;const c=$('an_tr'),g=c.getContext('2d'),W=c.width,cx=W/2,pts=d.pts,Rm=d.c.R/d.c.Dm*1000,zx=d.c.x-d.en.zm,zy=d.c.y-d.en.ym;
@@ -1306,6 +1321,7 @@ $('pn').onclick=()=>{if(stepI<2)showStep(stepI+1);else startAny()};
 $('skipmic').onclick=()=>startAny();
 $('endb').onclick=endSession;
 $('an_next').onclick=()=>{cancelAnimationFrame(rp);afterAna()};
+$('an_review').onclick=()=>showAnaForReview();
 $('an_rp').onclick=()=>startReplay(1);
 $('newb').onclick=()=>setPhase('setup');
 $('toRes').onclick=()=>{setPhase('setup');show('res')};
