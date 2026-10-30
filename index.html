@@ -31,6 +31,7 @@ input[type=range]{flex:1;min-width:140px}
 <div id="st">Paina Käynnistä kamera.</div>
 <div class="row">
 <button id="go">Käynnistä kamera</button>
+<button id="auto">Tunnista taulu</button>
 <button id="cal" class="s">Kalibroi uudelleen</button>
 <button id="clr" class="s">Tyhjennä</button>
 </div>
@@ -71,11 +72,54 @@ ov.addEventListener('click',e=>{
   const r=ov.getBoundingClientRect();
   corners.push([(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]);
   if(corners.length<4){st.textContent='Kulma '+corners.length+'/4 asetettu. Napauta seuraava.';return;}
+  finishCal();
+});
+
+function finishCal(){
   Hm=homography(corners);mask=new Uint8Array(W*H);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const[u,v]=map(Hm,(x+.5)/W,(y+.5)/H);mask[y*W+x]=(u>-.03&&u<1.03&&v>-.03&&v<1.03)?1:0;}
   st.textContent='Valmis. Ammu tauluun laserilla.';
-});
-
+}
+function autoDetect(){
+  if(!running){st.textContent='Käynnistä kamera ensin.';return;}
+  octx.drawImage(vid,0,0,W,H);
+  const d=octx.getImageData(0,0,W,H).data,n=W*H,g=new Uint8Array(n),hist=new Array(256).fill(0);
+  for(let i=0;i<n;i++){const j=i*4;g[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;hist[g[i]]++;}
+  let sum=0;for(let t=0;t<256;t++)sum+=t*hist[t];
+  let wB=0,sB=0,mx=0,th=128;
+  for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=t*hist[t];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>mx){mx=v;th=t;}}
+  let best=null;
+  for(const pol of [1,0]){
+    const bin=new Uint8Array(n);for(let i=0;i<n;i++)bin[i]=((g[i]>th)===(pol===1))?1:0;
+    const seen=new Uint8Array(n);
+    for(let s=0;s<n;s++){
+      if(!bin[s]||seen[s])continue;
+      const stack=[s];seen[s]=1;let area=0,touch=false,mnS=1e9,mxS=-1e9,mxD=-1e9,mnD=1e9,TL,TR,BR,BL;
+      while(stack.length){
+        const p=stack.pop(),x=p%W,y=(p/W)|0;area++;
+        if(x===0||y===0||x===W-1||y===H-1)touch=true;
+        const s1=x+y,s2=x-y;
+        if(s1<mnS){mnS=s1;TL=[x,y];}if(s1>mxS){mxS=s1;BR=[x,y];}if(s2>mxD){mxD=s2;TR=[x,y];}if(s2<mnD){mnD=s2;BL=[x,y];}
+        if(x>0&&bin[p-1]&&!seen[p-1]){seen[p-1]=1;stack.push(p-1);}
+        if(x<W-1&&bin[p+1]&&!seen[p+1]){seen[p+1]=1;stack.push(p+1);}
+        if(y>0&&bin[p-W]&&!seen[p-W]){seen[p-W]=1;stack.push(p-W);}
+        if(y<H-1&&bin[p+W]&&!seen[p+W]){seen[p+W]=1;stack.push(p+W);}
+      }
+      if(touch||area<n*0.03)continue;
+      const q=[TL,TR,BR,BL];let qa=0;
+      for(let i=0;i<4;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%4];qa+=x1*y2-x2*y1;}
+      qa=Math.abs(qa)/2;
+      if(qa<n*0.03||area/qa<0.5)continue;
+      const sd=q.map((p,i)=>Math.hypot(p[0]-q[(i+1)%4][0],p[1]-q[(i+1)%4][1]));
+      if(Math.min(...sd)/Math.max(...sd)<0.4)continue;
+      if(!best||qa>best.qa)best={qa,q};
+    }
+  }
+  if(!best){st.textContent='Taulua ei löytynyt. Varmista, että taulu erottuu selvästi taustasta ja on kokonaan kuvassa, tai napauta kulmat itse (Kalibroi uudelleen).';return;}
+  corners=best.q.map(([x,y])=>[(x+.5)/W,(y+.5)/H]);finishCal();
+  st.textContent='Taulu tunnistettu ja valmis. Jos vihreä rajaus on väärin, paina Kalibroi uudelleen ja napauta kulmat itse.';
+}
+$('auto').onclick=autoDetect;
 function beep(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator();o.connect(actx.destination);o.frequency.value=880;o.start();o.stop(actx.currentTime+.12);}catch(e){}}
 
 function loop(){
